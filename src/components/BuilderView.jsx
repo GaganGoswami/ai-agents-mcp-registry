@@ -80,6 +80,11 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
   const [editType, setEditType] = useState('default');
   const [saveType, setSaveType] = useState('agent');
   const workspaceRef = useRef();
+  // Palette search/filter and grouping
+  const [paletteQuery, setPaletteQuery] = useState('');
+  const [showAgents, setShowAgents] = useState(true);
+  const [showMcps, setShowMcps] = useState(true);
+  const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, item: null });
 
   const onConnect = useCallback((params) => {
     setEdges((eds) => {
@@ -182,76 +187,144 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
       <div style={{ flex: 1, display: 'flex', gap: 24, minHeight: 0, padding: '0 32px 0 32px' }}>
         {/* Node palette */}
   <div style={{ minWidth: 180, maxWidth: 220, flexShrink: 0, overflowY: 'auto', paddingBottom: 24 }}>
-          <div style={{ fontWeight: 500, marginBottom: 8 }}>Palette</div>
-          <div style={{ marginBottom: 8 }}>
-            <b>Agents:</b>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-              {agents.map(a => (
-                <div
-                  key={a.id}
-                  draggable
-                  onDragStart={handleDragStart('agent', a.name)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#f4f8ff',
-                    border: '1px solid #4f8cff',
-                    borderRadius: 10,
-                    padding: '8px 14px',
-                    fontWeight: 500,
-                    fontSize: 15,
-                    color: '#234',
-                    cursor: 'grab',
-                    boxShadow: '0 1px 4px rgba(79,140,255,0.08)',
-                    transition: 'background 0.2s, box-shadow 0.2s',
-                  }}
-                  onMouseDown={e => e.currentTarget.style.background = '#e0edff'}
-                  onMouseUp={e => e.currentTarget.style.background = '#f4f8ff'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#f4f8ff'}
-                  aria-label={`Drag ${a.name}`}
-                >
-                  <span style={{ fontSize: 20, marginRight: 2 }}>🤖</span>
-                  {a.name}
-                </div>
-              ))}
+    <div style={{ fontWeight: 500, marginBottom: 8 }}>Palette</div>
+    <input
+      type="text"
+      value={paletteQuery}
+      onChange={e => setPaletteQuery(e.target.value)}
+      placeholder="Search agents/MCPs..."
+      style={{ width: '100%', marginBottom: 10, padding: 7, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }}
+      aria-label="Search palette"
+    />
+    <div style={{ marginBottom: 8 }}>
+      <button
+        className="nav-btn"
+        style={{ fontSize: 14, marginBottom: 4, background: showAgents ? '#e0edff' : '#f4f8ff', color: '#234', border: '1px solid #4f8cff', borderRadius: 8 }}
+        onClick={() => setShowAgents(v => !v)}
+      >{showAgents ? '▼' : '▶'} Agents</button>
+      {showAgents && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          {agents.filter(a => a.name.toLowerCase().includes(paletteQuery.toLowerCase())).map(a => (
+            <div
+              key={a.id}
+              draggable
+              onDragStart={handleDragStart('agent', a.name)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#f4f8ff',
+                border: '1px solid #4f8cff',
+                borderRadius: 10,
+                padding: '8px 14px',
+                fontWeight: 500,
+                fontSize: 15,
+                color: '#234',
+                cursor: 'grab',
+                boxShadow: '0 1px 4px rgba(79,140,255,0.08)',
+                transition: 'background 0.2s, box-shadow 0.2s',
+                position: 'relative'
+              }}
+              onMouseDown={e => e.currentTarget.style.background = '#e0edff'}
+              onMouseUp={e => e.currentTarget.style.background = '#f4f8ff'}
+              onMouseLeave={e => { e.currentTarget.style.background = '#f4f8ff'; setTooltip({ visible: false }); }}
+              onMouseMove={e => {
+                setTooltip({
+                  visible: true,
+                  x: e.clientX + 12,
+                  y: e.clientY + 12,
+                  item: { ...a, type: 'Agent' }
+                });
+              }}
+              aria-label={`Drag ${a.name}`}
+            >
+              <span style={{ fontSize: 20, marginRight: 2 }}>🤖</span>
+              {a.name}
             </div>
-          </div>
-          <div style={{ marginTop: 12 }}>
-            <b>MCP Servers:</b>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-              {mcpServers.map(m => (
-                <div
-                  key={m.id}
-                  draggable
-                  onDragStart={handleDragStart('mcp', m.name)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: '#fff7e6',
-                    border: '1px solid #ffb84f',
-                    borderRadius: 10,
-                    padding: '8px 14px',
-                    fontWeight: 500,
-                    fontSize: 15,
-                    color: '#7a4f00',
-                    cursor: 'grab',
-                    boxShadow: '0 1px 4px rgba(255,184,79,0.08)',
-                    transition: 'background 0.2s, box-shadow 0.2s',
-                  }}
-                  onMouseDown={e => e.currentTarget.style.background = '#ffe6b3'}
-                  onMouseUp={e => e.currentTarget.style.background = '#fff7e6'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff7e6'}
-                  aria-label={`Drag ${m.name}`}
-                >
-                  <span style={{ fontSize: 20, marginRight: 2 }}>🗄️</span>
-                  {m.name}
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
+      )}
+    </div>
+    <div style={{ marginTop: 12 }}>
+      <button
+        className="nav-btn"
+        style={{ fontSize: 14, marginBottom: 4, background: showMcps ? '#ffe6b3' : '#fff7e6', color: '#7a4f00', border: '1px solid #ffb84f', borderRadius: 8 }}
+        onClick={() => setShowMcps(v => !v)}
+      >{showMcps ? '▼' : '▶'} MCP Servers</button>
+      {showMcps && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+          {mcpServers.filter(m => m.name.toLowerCase().includes(paletteQuery.toLowerCase())).map(m => (
+            <div
+              key={m.id}
+              draggable
+              onDragStart={handleDragStart('mcp', m.name)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#fff7e6',
+                border: '1px solid #ffb84f',
+                borderRadius: 10,
+                padding: '8px 14px',
+                fontWeight: 500,
+                fontSize: 15,
+                color: '#7a4f00',
+                cursor: 'grab',
+                boxShadow: '0 1px 4px rgba(255,184,79,0.08)',
+                transition: 'background 0.2s, box-shadow 0.2s',
+                position: 'relative'
+              }}
+              onMouseDown={e => e.currentTarget.style.background = '#ffe6b3'}
+              onMouseUp={e => e.currentTarget.style.background = '#fff7e6'}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff7e6'; setTooltip({ visible: false }); }}
+              onMouseMove={e => {
+                setTooltip({
+                  visible: true,
+                  x: e.clientX + 12,
+                  y: e.clientY + 12,
+                  item: { ...m, type: 'MCP Server' }
+                });
+              }}
+              aria-label={`Drag ${m.name}`}
+            >
+              <span style={{ fontSize: 20, marginRight: 2 }}>🗄️</span>
+              {m.name}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+        </div>
+        {/* Advanced tooltip for palette items */}
+        {tooltip.visible && tooltip.item && (
+          <div style={{
+            position: 'fixed',
+            left: tooltip.x,
+            top: tooltip.y,
+            zIndex: 9999,
+            background: '#fff',
+            border: '1px solid #ddd',
+            borderRadius: 10,
+            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            padding: '14px 18px',
+            minWidth: 220,
+            maxWidth: 320,
+            color: '#222',
+            fontSize: 15,
+            pointerEvents: 'none'
+          }}>
+            <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 4 }}>
+              {tooltip.item.type === 'Agent' ? '🤖' : '🗄️'} {tooltip.item.name}
+            </div>
+            <div style={{ fontSize: 14, color: '#4f8cff', marginBottom: 6 }}>{tooltip.item.type}</div>
+            <div style={{ fontSize: 14, marginBottom: 6 }}>{tooltip.item.description || 'No description.'}</div>
+            {tooltip.item.tags && tooltip.item.tags.length > 0 && (
+              <div style={{ fontSize: 13, color: '#888', marginBottom: 2 }}>
+                Tags: {tooltip.item.tags.join(', ')}
+              </div>
+            )}
+          </div>
+        )}
         {/* ReactFlow workspace */}
         <div
           ref={workspaceRef}
