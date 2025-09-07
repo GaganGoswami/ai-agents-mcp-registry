@@ -9,6 +9,9 @@ const GOVERNANCE_STATUSES = ['approved', 'pending', 'rejected'];
 function GovernanceView({ agents = [], mcpServers = [], onApprove, onReject }) {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  // Normalize governanceStatus for all items
+  const normalizedAgents = agents.map(a => ({ ...a, governanceStatus: a.governanceStatus || 'pending' }));
+  const normalizedMcpServers = mcpServers.map(m => ({ ...m, governanceStatus: m.governanceStatus || 'pending' }));
   const filterItem = item => {
     if (selectedStatus && item.governanceStatus !== selectedStatus) return false;
     return true;
@@ -42,20 +45,20 @@ function GovernanceView({ agents = [], mcpServers = [], onApprove, onReject }) {
       <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 320 }}>
           <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>Agents</div>
-          {agents.filter(filterItem).length === 0 ? (
+          {normalizedAgents.filter(filterItem).length === 0 ? (
             <div style={{ color: '#888', fontSize: 14, marginBottom: 16 }}>No agents found for this status.</div>
           ) : (
-            agents.filter(filterItem).map(agent => (
+            normalizedAgents.filter(filterItem).map(agent => (
               <div key={agent.id} style={{ marginBottom: 16 }}>
                 <ItemCard item={agent} type="agent" onSelect={() => {}} />
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  {(agent.governanceStatus === 'pending' || !agent.governanceStatus) && (
+                  {agent.governanceStatus === 'pending' && (
                     <>
                       <button className="nav-btn" style={{ background: '#32b8c6' }} onClick={() => handleApprove(agent, 'agent')}>Approve</button>
                       <button className="nav-btn" style={{ background: '#ff5459' }} onClick={() => handleReject(agent, 'agent')}>Reject</button>
                     </>
                   )}
-                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Status: <b>{agent.governanceStatus || 'pending'}</b></span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Status: <b>{agent.governanceStatus}</b></span>
                 </div>
               </div>
             ))
@@ -63,20 +66,20 @@ function GovernanceView({ agents = [], mcpServers = [], onApprove, onReject }) {
         </div>
         <div style={{ flex: 1, minWidth: 320 }}>
           <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>MCP Servers</div>
-          {mcpServers.filter(filterItem).length === 0 ? (
+          {normalizedMcpServers.filter(filterItem).length === 0 ? (
             <div style={{ color: '#888', fontSize: 14, marginBottom: 16 }}>No MCP servers found for this status.</div>
           ) : (
-            mcpServers.filter(filterItem).map(mcp => (
+            normalizedMcpServers.filter(filterItem).map(mcp => (
               <div key={mcp.id} style={{ marginBottom: 16 }}>
                 <ItemCard item={mcp} type="mcp" onSelect={() => {}} />
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  {(mcp.governanceStatus === 'pending' || !mcp.governanceStatus) && (
+                  {mcp.governanceStatus === 'pending' && (
                     <>
                       <button className="nav-btn" style={{ background: '#32b8c6' }} onClick={() => handleApprove(mcp, 'mcp')}>Approve</button>
                       <button className="nav-btn" style={{ background: '#ff5459' }} onClick={() => handleReject(mcp, 'mcp')}>Reject</button>
                     </>
                   )}
-                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Status: <b>{mcp.governanceStatus || 'pending'}</b></span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>Status: <b>{mcp.governanceStatus}</b></span>
                 </div>
               </div>
             ))
