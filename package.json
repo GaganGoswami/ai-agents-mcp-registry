@@ -14,7 +14,12 @@
     "clean": "rm -rf node_modules package-lock.json && npm install"
   },
   "keywords": [
-    "ai-agents", "mcp", "registry", "monitoring", "react", "vite"
+    "ai-agents",
+    "mcp",
+    "registry",
+    "monitoring",
+    "react",
+    "vite"
   ],
   "author": "AI Registry App",
   "license": "MIT",
@@ -23,13 +28,16 @@
     "vite": "^5.4.2"
   },
   "dependencies": {
+    "@xyflow/react": "^12.8.4",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "recharts": "^2.12.7",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
-    "reactflow": "^11.7.7"
+    "react-dom": "^18.3.1",
+    "reactflow": "^11.7.7",
+    "recharts": "^2.12.7",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.27"
   }
 }

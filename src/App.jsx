@@ -6,6 +6,8 @@ import DetailsView from './components/DetailsView';
 import MonitorView from './components/MonitorView';
 import AuthLogin from './components/AuthLogin';
 import SearchBar from './components/SearchBar';
+// Builder view (to be implemented)
+const BuilderView = React.lazy(() => import('./components/BuilderView'));
 
 const LOCAL_KEY_AGENTS = 'agents';
 const LOCAL_KEY_MCP = 'mcpServers';
@@ -128,11 +130,14 @@ const App = () => {
         <button className={`nav-btn${currentView === 'dashboard' ? ' active' : ''}`} onClick={() => setCurrentView('dashboard')}>Dashboard</button>
         <button className={`nav-btn${currentView === 'monitor' ? ' active' : ''}`} onClick={() => setCurrentView('monitor')}>Monitor</button>
         {user.role === 'admin' && (
-          <button className="nav-btn" onClick={handleRegister} aria-label="Register new agent or MCP server">+ Register</button>
+          <>
+            <button className="nav-btn" onClick={handleRegister} aria-label="Register new agent or MCP server">+ Register</button>
+            <button className={`nav-btn${currentView === 'builder' ? ' active' : ''}`} onClick={() => setCurrentView('builder')}>Builder</button>
+          </>
         )}
       </nav>
       <main className="main-content">
-        {currentView === 'dashboard' && (
+  {currentView === 'dashboard' && (
           <>
             <SearchBar
               query={searchQuery}
@@ -140,6 +145,7 @@ const App = () => {
               tags={allTags}
               selectedTags={selectedTags}
               onTagToggle={handleTagToggle}
+              items={[...agents, ...mcpServers]}
             />
             <Dashboard
               agents={filterItems(agents)}
@@ -150,6 +156,39 @@ const App = () => {
               onImportData={(newAgents, newMcpServers) => {
                 setAgents(newAgents);
                 setMcpServers(newMcpServers);
+              }}
+              onNlpRegister={async (nlpText) => {
+                if (!nlpText) return;
+                try {
+                  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'sk-PLACEHOLDER'}`
+                    },
+                    body: JSON.stringify({
+                      model: 'gpt-4',
+                      messages: [
+                        { role: 'system', content: 'You are an expert at extracting structured agent/MCP details from natural language.' },
+                        { role: 'user', content: nlpText }
+                      ],
+                      temperature: 0.2
+                    })
+                  });
+                  const data = await response.json();
+                  const content = data.choices?.[0]?.message?.content;
+                  let details;
+                  try { details = JSON.parse(content); } catch { details = { name: content }; }
+                  if (details.type === 'agent' || details.role === 'agent') {
+                    setAgents(prev => [...prev, { ...details, id: `agent-${Date.now()}` }]);
+                  } else if (details.type === 'mcp' || details.role === 'mcp') {
+                    setMcpServers(prev => [...prev, { ...details, id: `mcp-${Date.now()}` }]);
+                  } else {
+                    alert('Could not determine type. Please specify agent or MCP in your description.');
+                  }
+                } catch (err) {
+                  alert('NLP registration failed. Please check your API key and try again.');
+                }
               }}
             />
           </>
@@ -187,6 +226,11 @@ const App = () => {
             onSelect={handleSelect}
             user={user}
           />
+        )}
+        {currentView === 'builder' && user?.role === 'admin' && (
+          <React.Suspense fallback={<div>Loading Builder...</div>}>
+            <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
+          </React.Suspense>
         )}
       </main>
     </div>

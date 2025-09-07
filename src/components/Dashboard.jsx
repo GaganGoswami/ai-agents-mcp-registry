@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
 
@@ -11,7 +11,9 @@ import DependencyGraph from './DependencyGraph';
  * @param {Function} props.onRegister
  * @param {Object} props.user
  */
-const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user, onImportData }) => {
+const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user, onImportData, onNlpRegister }) => {
+  const [showNlpModal, setShowNlpModal] = useState(false);
+  const [nlpInput, setNlpInput] = useState('');
   // Export registry data as JSON
   const handleExport = () => {
     const data = { agents, mcpServers };
@@ -71,11 +73,25 @@ const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user, onImportDat
         {user?.role === 'admin' && (
           <div style={{ display: 'flex', gap: 12 }}>
             <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button>
+            <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
             <button className="nav-btn" style={{ fontSize: 14 }} onClick={handleExport} aria-label="Export registry data">Export</button>
             <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => fileInputRef.current.click()} aria-label="Import registry data">Import</button>
             <input type="file" accept="application/json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
           </div>
         )}
+      {/* NLP Registration Modal */}
+      {showNlpModal && (
+        <div style={{ position: 'fixed', top: 80, left: 0, right: 0, margin: '0 auto', maxWidth: 420, background: '#fff', borderRadius: 12, boxShadow: 'var(--shadow-md)', padding: 24, zIndex: 1000 }}>
+          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 12 }}>NLP Registration</div>
+          <div style={{ marginBottom: 8 }}>
+            <textarea value={nlpInput} onChange={e => setNlpInput(e.target.value)} rows={5} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }} placeholder="Describe your agent or MCP server in natural language..." />
+          </div>
+          <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+            <button className="nav-btn" onClick={() => { if (onNlpRegister) onNlpRegister(nlpInput); setShowNlpModal(false); setNlpInput(''); }}>Submit</button>
+            <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => { setShowNlpModal(false); setNlpInput(''); }}>Cancel</button>
+          </div>
+        </div>
+      )}
       </div>
 
       {/* Recommendations Section */}

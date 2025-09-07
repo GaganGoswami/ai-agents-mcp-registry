@@ -1,4 +1,6 @@
 import React from 'react';
+import { ReactFlow, MiniMap, Controls, Background } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import HealthChecker from './HealthChecker';
 import InstructionsGenerator from './InstructionsGenerator';
 import SDKGenerator from './SDKGenerator';
@@ -84,6 +86,30 @@ const DetailsView = ({ item, type, onUnregister, onBack, user, onUpdateItem }) =
           </button>
         )}
       </div>
+      {/* Workflow preview */}
+      {item.workflow && item.workflow.nodes && item.workflow.edges && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontWeight: 500, marginBottom: 8 }}>Workflow Preview</div>
+          <div style={{ height: 220, background: '#fff', borderRadius: 8 }}>
+            <ReactFlow
+              nodes={item.workflow.nodes}
+              edges={item.workflow.edges}
+              fitView
+              attributionPosition="top-right"
+              panOnDrag={false}
+              zoomOnScroll={false}
+              zoomOnPinch={false}
+              zoomOnDoubleClick={false}
+              panOnScroll={false}
+              draggable={false}
+            >
+              <MiniMap zoomable pannable />
+              <Controls />
+              <Background />
+            </ReactFlow>
+          </div>
+        </div>
+      )}
       {user?.role === 'admin' && <AuditLog logs={item.auditLogs} />}
       <HealthChecker item={item} />
       <InstructionsGenerator item={item} />
@@ -91,7 +117,7 @@ const DetailsView = ({ item, type, onUnregister, onBack, user, onUpdateItem }) =
       <TestingSandbox item={item} />
       <CommentsSection item={item} onAddComment={handleAddComment} />
       <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
-  <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={handleUnregisterWithAudit} aria-label="Unregister">Unregister</button>
+        <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={handleUnregisterWithAudit} aria-label="Unregister">Unregister</button>
         <button className="nav-btn" onClick={onBack} aria-label="Back">Back</button>
       </div>
     </div>
