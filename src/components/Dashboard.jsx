@@ -1,5 +1,6 @@
 
 import React, { useRef, useState } from 'react';
+import ImportModal from './ImportModal';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
 
@@ -19,7 +20,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   const [selectedPricing, setSelectedPricing] = useState([]);
   const [showNlpModal, setShowNlpModal] = useState(false);
   const [nlpInput, setNlpInput] = useState('');
-  const fileInputRef = useRef();
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const filterByPricing = item => {
     if (selectedPricing.length === 0) return true;
@@ -72,11 +73,12 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             </div>
             {user?.role === 'admin' && (
               <div style={{ display: 'flex', gap: 12 }}>
-                <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button>
+                {/* <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button> */}
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={handleExport} aria-label="Export registry data">Export</button>
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => fileInputRef.current.click()} aria-label="Import registry data">Import</button>
-                <input type="file" accept="application/json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
+                {/* <input type="file" accept="application/json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} /> */}
+                <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => setShowImportModal(true)} aria-label="Import registry data">Import</button>
               </div>
             )}
           </div>
@@ -92,6 +94,16 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
                 <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => { setShowNlpModal(false); setNlpInput(''); }}>Cancel</button>
               </div>
             </div>
+          )}
+          {/* Import Modal */}
+          {showImportModal && (
+            <ImportModal
+              onImportData={(newAgents, newMcpServers) => {
+                if (handleImport) handleImport({ agents: newAgents, mcpServers: newMcpServers });
+                setShowImportModal(false);
+              }}
+              onClose={() => setShowImportModal(false)}
+            />
           )}
           {/* Recommendations Section */}
           {recommendations.length > 0 && (
