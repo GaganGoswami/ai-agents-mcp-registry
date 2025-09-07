@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
  * SearchBar component for semantic search and tag filtering
@@ -26,6 +26,28 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [highlightedIdx, setHighlightedIdx] = useState(-1);
   const inputRef = useRef();
+
+  // Theme handling (sync with body attribute + observer so changes via global toggle reflect here)
+  const [colorScheme, setColorScheme] = useState(() => document.body.getAttribute('data-color-scheme') || 'light');
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const attr = document.body.getAttribute('data-color-scheme') || 'light';
+      setColorScheme(prev => (prev !== attr ? attr : prev));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-color-scheme'] });
+    return () => observer.disconnect();
+  }, []);
+  const isDark = colorScheme === 'dark';
+  // Inject placeholder color styling (scoped) so placeholder remains legible in dark mode
+  useEffect(() => {
+    let styleEl = document.getElementById('search-bar-theme-style');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'search-bar-theme-style';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = `.search-bar-input::placeholder { color: ${isDark ? '#b0b8c1' : '#666'}; opacity: 1; }`;
+  }, [isDark]);
 
   // Build suggestions from names, tags, and common queries
   const suggestions = [
@@ -124,7 +146,18 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
         onChange={handleInputChange}
         onKeyDown={handleInputKeyDown}
         placeholder="Semantic search (e.g. 'RAG agent with Postgres')"
-        style={{ padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14, width: '100%' }}
+        className="search-bar-input"
+        style={{
+          padding: 10,
+          borderRadius: 10,
+          border: isDark ? '1px solid #444' : '1px solid var(--color-border)',
+            fontSize: 14,
+            width: '100%',
+            background: isDark ? '#2c313a' : '#fff',
+            color: isDark ? '#e0e6ed' : '#222',
+            boxShadow: isDark ? '0 1px 3px #0008 inset' : 'none',
+            transition: 'background .25s, color .25s, border-color .25s'
+        }}
         aria-label="Semantic search"
         autoComplete="off"
         onFocus={() => setShowSuggestions(input.length > 0 && suggestions.length > 0)}
@@ -137,10 +170,10 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
           top: 38,
           left: 0,
           width: '100%',
-          background: '#fff',
-          border: '1px solid #e0e6ed',
+          background: isDark ? '#23272f' : '#fff',
+          border: isDark ? '1px solid #444' : '1px solid #e0e6ed',
           borderRadius: 8,
-          boxShadow: 'var(--shadow-md)',
+          boxShadow: isDark ? '0 4px 18px #0009' : 'var(--shadow-md)',
           zIndex: 100,
           maxHeight: 220,
           overflowY: 'auto',
@@ -150,10 +183,12 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
               key={s}
               style={{
                 padding: '8px 14px',
-                background: highlightedIdx === idx ? '#e0f7fa' : '#fff',
+                background: highlightedIdx === idx ? (isDark ? '#31737d' : '#e0f7fa') : (isDark ? '#23272f' : '#fff'),
                 cursor: 'pointer',
                 fontSize: 15,
-                borderBottom: idx < suggestions.length - 1 ? '1px solid #f0f0f0' : 'none',
+                color: isDark ? '#e0e6ed' : '#222',
+                borderBottom: idx < suggestions.length - 1 ? (isDark ? '1px solid #333' : '1px solid #f0f0f0') : 'none',
+                transition: 'background .15s'
               }}
               onMouseDown={() => handleSuggestionClick(s)}
               onMouseEnter={() => setHighlightedIdx(idx)}
@@ -170,13 +205,21 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
             key={tag}
             className="nav-btn"
             style={{
-              background: selectedTags.includes(tag) ? 'var(--color-primary-hover)' : 'var(--color-surface)',
-              color: selectedTags.includes(tag) ? 'var(--color-white)' : 'var(--color-primary)',
-              border: '1px solid var(--color-border)',
+              background: selectedTags.includes(tag)
+                ? (isDark ? '#31737d' : 'var(--color-primary-hover)')
+                : (isDark ? '#23272f' : 'var(--color-surface)'),
+              color: selectedTags.includes(tag)
+                ? (isDark ? '#e0e6ed' : 'var(--color-white)')
+                : (isDark ? '#32b8c6' : 'var(--color-primary)'),
+              border: selectedTags.includes(tag)
+                ? (isDark ? '1px solid #31737d' : '1px solid var(--color-primary-hover)')
+                : (isDark ? '1px solid #444' : '1px solid var(--color-border)'),
               fontSize: 13,
               padding: '4px 12px',
-              borderRadius: 8,
-              cursor: 'pointer'
+              borderRadius: 20,
+              cursor: 'pointer',
+              boxShadow: selectedTags.includes(tag) ? (isDark ? '0 1px 3px #0008 inset' : 'var(--shadow-sm)') : 'none',
+              transition: 'background .2s, color .2s, border-color .2s'
             }}
             onClick={() => onTagToggle(tag)}
             aria-label={`Toggle tag ${tag}`}
@@ -185,19 +228,47 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
           </button>
         ))}
       </div>
-      <button className="nav-btn" style={{ marginTop: 8, alignSelf: 'flex-start' }} onClick={handleSemanticSearch}>Semantic Search</button>
+      <button
+        className="nav-btn"
+        style={{
+          marginTop: 8,
+          alignSelf: 'flex-start',
+          background: isDark ? '#31737d' : 'var(--color-primary)',
+          color: isDark ? '#e0e6ed' : '#fff',
+          border: 'none',
+          borderRadius: 10,
+          padding: '8px 18px',
+          fontSize: 14,
+          boxShadow: isDark ? '0 2px 6px #0009' : 'var(--shadow-sm)',
+          transition: 'background .25s'
+        }}
+        onClick={handleSemanticSearch}
+      >Semantic Search</button>
       {semanticMode && (
-        <div style={{ marginTop: 16, background: '#f6f6f6', borderRadius: 8, padding: 12 }}>
-          <div style={{ fontWeight: 500, marginBottom: 8 }}>Semantic Results:</div>
+        <div style={{ marginTop: 16, background: isDark ? '#23272f' : '#f6f6f6', borderRadius: 10, padding: 14, border: isDark ? '1px solid #444' : '1px solid #eee', color: isDark ? '#e0e6ed' : '#222' }}>
+          <div style={{ fontWeight: 500, marginBottom: 8, fontSize: 15 }}>Semantic Results:</div>
           <ul>
             {semanticResults.map(r => (
-              <li key={r.item.id} style={{ marginBottom: 6 }}>
-                <b>{r.item.name}</b> <span style={{ color: '#888' }}>({r.score.toFixed(2)})</span><br />
-                <span style={{ fontSize: 13 }}>{r.item.description}</span>
+              <li key={r.item.id} style={{ marginBottom: 8, lineHeight: 1.25 }}>
+                <b>{r.item.name}</b> <span style={{ color: isDark ? '#b0b8c1' : '#888' }}>({r.score.toFixed(2)})</span><br />
+                <span style={{ fontSize: 13, color: isDark ? '#b0b8c1' : '#444' }}>{r.item.description}</span>
               </li>
             ))}
           </ul>
-          <button className="nav-btn" style={{ marginTop: 8 }} onClick={() => setSemanticMode(false)}>Back to normal search</button>
+          <button
+            className="nav-btn"
+            style={{
+              marginTop: 8,
+              background: isDark ? '#31737d' : 'var(--color-primary)',
+              color: isDark ? '#e0e6ed' : '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '6px 14px',
+              fontSize: 13,
+              boxShadow: isDark ? '0 2px 6px #0009' : 'var(--shadow-sm)'
+            }}
+            onClick={() => setSemanticMode(false)}
+          >Back to normal search</button>
         </div>
       )}
     </div>
