@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 // Helper to get unique tags/types
 function getUnique(arr, key) {
   return Array.from(new Set(arr.flatMap(i => i[key] || []))).sort();
@@ -8,6 +8,7 @@ import ImportModal from './ImportModal';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
 import MonitorCharts from './MonitorCharts';
+import LogViewer from './LogViewer';
 
 // Example PRICING_MODELS and filterByPricing for context
 const PRICING_MODELS = [
@@ -19,6 +20,52 @@ const PRICING_MODELS = [
 ];
 
 function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, onNlpRegister, recommendations = [], handleExport, handleImport }) {
+  // Simulate real-time updates
+  const [liveAgents, setLiveAgents] = useState(agents);
+  const [liveMcpServers, setLiveMcpServers] = useState(mcpServers);
+  useEffect(() => {
+    setLiveAgents(agents);
+    setLiveMcpServers(mcpServers);
+  }, [agents, mcpServers]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveAgents(prev => prev.map(a => ({
+        ...a,
+        usageStats: {
+          ...a.usageStats,
+          invocations: (a.usageStats?.invocations || 0) + Math.floor(Math.random() * 5),
+          success: (a.usageStats?.success || 0) + Math.floor(Math.random() * 4),
+          error: (a.usageStats?.error || 0) + (Math.random() < 0.2 ? 1 : 0)
+        },
+        auditLogs: [
+          ...(a.auditLogs || []),
+          ...(Math.random() < 0.1 ? [{
+            time: new Date().toLocaleTimeString(),
+            action: 'Invoked',
+            user: 'system',
+          }] : [])
+        ]
+      })));
+      setLiveMcpServers(prev => prev.map(m => ({
+        ...m,
+        usageStats: {
+          ...m.usageStats,
+          invocations: (m.usageStats?.invocations || 0) + Math.floor(Math.random() * 8),
+          success: (m.usageStats?.success || 0) + Math.floor(Math.random() * 7),
+          error: (m.usageStats?.error || 0) + (Math.random() < 0.15 ? 1 : 0)
+        },
+        auditLogs: [
+          ...(m.auditLogs || []),
+          ...(Math.random() < 0.08 ? [{
+            time: new Date().toLocaleTimeString(),
+            action: 'HealthCheck',
+            user: 'system',
+          }] : [])
+        ]
+      })));
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
   // Debug: print incoming data
   console.log('DASHBOARD AGENTS:', agents);
   console.log('DASHBOARD MCP_SERVERS:', mcpServers);
@@ -49,8 +96,8 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
     return true;
   };
 
-  const onlineAgents = agents.filter(a => a.status === 'online').length;
-  const onlineMCP = mcpServers.filter(m => m.status === 'online').length;
+  const onlineAgents = liveAgents.filter(a => a.status === 'online').length;
+  const onlineMCP = liveMcpServers.filter(m => m.status === 'online').length;
 
   return (
     <div className="view active">
@@ -165,20 +212,35 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             </div>
           )}
           {/* Monitoring Charts */}
-          <MonitorCharts agents={agents} mcpServers={mcpServers} />
+          <MonitorCharts agents={liveAgents} mcpServers={liveMcpServers} />
+          {/* Alert system for error spikes */}
+          {(() => {
+            const totalErrors = [...liveAgents, ...liveMcpServers].reduce((sum, item) => sum + (item.usageStats?.error || 0), 0);
+            if (totalErrors > 10) {
+              return (
+                <div style={{ background: '#fff3cd', color: '#856404', borderRadius: 8, padding: 12, margin: '16px 0', boxShadow: 'var(--shadow-sm)', fontWeight: 500 }}>
+                  <span role="img" aria-label="alert" style={{ marginRight: 8 }}>⚠️</span>
+                  High error rate detected! ({totalErrors} errors in last period)
+                </div>
+              );
+            }
+            return null;
+          })()}
+          {/* Log Viewer for audit logs */}
+          <LogViewer agents={liveAgents} mcpServers={liveMcpServers} />
           {/* Dependency Graph Visualization */}
           <DependencyGraph agents={agents} mcpServers={mcpServers} />
           {/* Agent and MCP lists */}
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 320 }}>
               <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>Agents</div>
-              {agents.filter(filterItem).map(agent => (
+              {liveAgents.filter(filterItem).map(agent => (
                 <ItemCard key={agent.id} item={agent} type="agent" onSelect={onSelect} />
               ))}
             </div>
             <div style={{ flex: 1, minWidth: 320 }}>
               <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>MCP Servers</div>
-              {mcpServers.filter(filterItem).map(mcp => (
+              {liveMcpServers.filter(filterItem).map(mcp => (
                 <ItemCard key={mcp.id} item={mcp} type="mcp" onSelect={onSelect} />
               ))}
             </div>
