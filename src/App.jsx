@@ -50,6 +50,7 @@ const App = () => {
 
   const handleRegister = useCallback(() => {
     setShowRegister(true);
+    setCurrentView('dashboard');
   }, []);
 
   const handleRegisterConfirm = useCallback((data, type) => {
@@ -126,112 +127,216 @@ const App = () => {
           >Sign Out</button>
         </div>
       </header>
-      <nav className="navbar">
-        <button className={`nav-btn${currentView === 'dashboard' ? ' active' : ''}`} onClick={() => setCurrentView('dashboard')}>Dashboard</button>
-        <button className={`nav-btn${currentView === 'monitor' ? ' active' : ''}`} onClick={() => setCurrentView('monitor')}>Monitor</button>
+      <nav className="navbar" style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 18,
+        background: '#f8fafc',
+        borderBottom: '1px solid #e0e6ed',
+        padding: '0 32px',
+        height: 56,
+        fontWeight: 500,
+        fontSize: 16,
+        position: 'sticky',
+        top: 0,
+        zIndex: 10
+      }} aria-label="Main Navigation">
+        <button
+          className="nav-btn"
+          style={{
+            color: '#234',
+            textDecoration: 'none',
+            padding: '8px 18px',
+            borderRadius: 8,
+            background: currentView === 'dashboard' ? '#31737d' : '#31737d22',
+            border: currentView === 'dashboard' ? '1px solid #31737d' : 'none',
+            fontWeight: currentView === 'dashboard' ? 600 : 500,
+            fontSize: 18
+          }}
+          onClick={() => setCurrentView('dashboard')}
+        >Dashboard</button>
+        <button
+          className="nav-btn"
+          style={{
+            color: '#234',
+            textDecoration: 'none',
+            padding: '8px 18px',
+            borderRadius: 8,
+            background: currentView === 'monitor' ? '#31737d' : '#31737d22',
+            border: currentView === 'monitor' ? '1px solid #31737d' : 'none',
+            fontWeight: currentView === 'monitor' ? 600 : 500,
+            fontSize: 18
+          }}
+          onClick={() => setCurrentView('monitor')}
+        >Monitor</button>
         {user.role === 'admin' && (
           <>
-            <button className="nav-btn" onClick={handleRegister} aria-label="Register new agent or MCP server">+ Register</button>
-            <button className={`nav-btn${currentView === 'builder' ? ' active' : ''}`} onClick={() => setCurrentView('builder')}>Builder</button>
+            <button
+              className="nav-btn"
+              style={{
+                color: '#234',
+                textDecoration: 'none',
+                padding: '8px 18px',
+                borderRadius: 8,
+                background: showRegister ? '#31737d' : '#31737d22',
+                border: showRegister ? '1px solid #31737d' : 'none',
+                fontWeight: showRegister ? 600 : 500,
+                fontSize: 18
+              }}
+              onClick={handleRegister}
+              aria-label="Register new agent or MCP server"
+            >+ Register</button>
+            <button
+              className="nav-btn"
+              style={{
+                color: '#234',
+                textDecoration: 'none',
+                padding: '8px 18px',
+                borderRadius: 8,
+                background: currentView === 'builder' ? '#31737d' : '#31737d22',
+                border: currentView === 'builder' ? '1px solid #31737d' : 'none',
+                fontWeight: currentView === 'builder' ? 600 : 500,
+                fontSize: 18
+              }}
+              onClick={() => setCurrentView('builder')}
+            >Builder</button>
           </>
         )}
       </nav>
-      <main className="main-content">
-  {currentView === 'dashboard' && (
+      <main className="main-content" style={{ position: 'relative' }}>
+        {showRegister && (
           <>
-            <SearchBar
-              query={searchQuery}
-              onQueryChange={setSearchQuery}
-              tags={allTags}
-              selectedTags={selectedTags}
-              onTagToggle={handleTagToggle}
-              items={[...agents, ...mcpServers]}
-            />
-            <Dashboard
-              agents={filterItems(agents)}
-              mcpServers={filterItems(mcpServers)}
-              onSelect={handleSelect}
-              onRegister={handleRegister}
-              user={user}
-              onImportData={(newAgents, newMcpServers) => {
-                setAgents(newAgents);
-                setMcpServers(newMcpServers);
-              }}
-              onNlpRegister={async (nlpText) => {
-                if (!nlpText) return;
-                try {
-                  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'sk-PLACEHOLDER'}`
-                    },
-                    body: JSON.stringify({
-                      model: 'gpt-4',
-                      messages: [
-                        { role: 'system', content: 'You are an expert at extracting structured agent/MCP details from natural language.' },
-                        { role: 'user', content: nlpText }
-                      ],
-                      temperature: 0.2
-                    })
-                  });
-                  const data = await response.json();
-                  const content = data.choices?.[0]?.message?.content;
-                  let details;
-                  try { details = JSON.parse(content); } catch { details = { name: content }; }
-                  if (details.type === 'agent' || details.role === 'agent') {
-                    setAgents(prev => [...prev, { ...details, id: `agent-${Date.now()}` }]);
-                  } else if (details.type === 'mcp' || details.role === 'mcp') {
-                    setMcpServers(prev => [...prev, { ...details, id: `mcp-${Date.now()}` }]);
-                  } else {
-                    alert('Could not determine type. Please specify agent or MCP in your description.');
-                  }
-                } catch (err) {
-                  alert('NLP registration failed. Please check your API key and try again.');
-                }
-              }}
-            />
+            {/* Backdrop with blur */}
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100vw',
+              height: '100vh',
+              background: 'rgba(255,255,255,0.6)',
+              backdropFilter: 'blur(6px)',
+              zIndex: 1000
+            }} />
+            {/* Modal container */}
+            <div style={{
+              position: 'fixed',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1001,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: 320,
+              maxWidth: 400,
+              width: '100%',
+              padding: 0
+            }}>
+              <RegisterWizard
+                onRegister={handleRegisterConfirm}
+                onCancel={() => setShowRegister(false)}
+                agents={agents}
+                mcpServers={mcpServers}
+              />
+            </div>
           </>
         )}
-        {showRegister && (
-          <RegisterWizard
-            onRegister={handleRegisterConfirm}
-            onCancel={() => setShowRegister(false)}
-            agents={agents}
-            mcpServers={mcpServers}
-          />
-        )}
-        {currentView === 'details' && selectedItem && (
-            <DetailsView
-              item={selectedItem}
-              type={selectedType}
-              onUnregister={handleUnregister}
-              onBack={handleBack}
+        {/* Dashboard and other views, blurred if modal is open */}
+        <div style={showRegister ? {
+          filter: 'blur(4px)',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          opacity: 0.7
+        } : {}}>
+          {currentView === 'dashboard' ? (
+            <>
+              <SearchBar
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
+                tags={allTags}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+                items={[...agents, ...mcpServers]}
+              />
+              <Dashboard
+                agents={filterItems(agents)}
+                mcpServers={filterItems(mcpServers)}
+                onSelect={handleSelect}
+                onRegister={handleRegister}
+                user={user}
+                onImportData={(newAgents, newMcpServers) => {
+                  setAgents(newAgents);
+                  setMcpServers(newMcpServers);
+                }}
+                onNlpRegister={async (nlpText) => {
+                  if (!nlpText) return;
+                  try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'sk-PLACEHOLDER'}`
+                      },
+                      body: JSON.stringify({
+                        model: 'gpt-4',
+                        messages: [
+                          { role: 'system', content: 'You are an expert at extracting structured agent/MCP details from natural language.' },
+                          { role: 'user', content: nlpText }
+                        ],
+                        temperature: 0.2
+                      })
+                    });
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content;
+                    let details;
+                    try { details = JSON.parse(content); } catch { details = { name: content }; }
+                    if (details.type === 'agent' || details.role === 'agent') {
+                      setAgents(prev => [...prev, { ...details, id: `agent-${Date.now()}` }]);
+                    } else if (details.type === 'mcp' || details.role === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...details, id: `mcp-${Date.now()}` }]);
+                    } else {
+                      alert('Could not determine type. Please specify agent or MCP in your description.');
+                    }
+                  } catch (err) {
+                    alert('NLP registration failed. Please check your API key and try again.');
+                  }
+                }}
+              />
+            </>
+          ) : null}
+          {currentView === 'details' && selectedItem && (
+              <DetailsView
+                item={selectedItem}
+                type={selectedType}
+                onUnregister={handleUnregister}
+                onBack={handleBack}
+                user={user}
+                onUpdateItem={(updated, type) => {
+                  if (type === 'agent') {
+                    setAgents(prev => prev.map(a => a.id === updated.id ? updated : a));
+                    setSelectedItem(updated);
+                  } else {
+                    setMcpServers(prev => prev.map(m => m.id === updated.id ? updated : m));
+                    setSelectedItem(updated);
+                  }
+                }}
+              />
+          )}
+          {currentView === 'monitor' && (
+            <MonitorView
+              agents={agents}
+              mcpServers={mcpServers}
+              onSelect={handleSelect}
               user={user}
-              onUpdateItem={(updated, type) => {
-                if (type === 'agent') {
-                  setAgents(prev => prev.map(a => a.id === updated.id ? updated : a));
-                  setSelectedItem(updated);
-                } else {
-                  setMcpServers(prev => prev.map(m => m.id === updated.id ? updated : m));
-                  setSelectedItem(updated);
-                }
-              }}
             />
-        )}
-        {currentView === 'monitor' && (
-          <MonitorView
-            agents={agents}
-            mcpServers={mcpServers}
-            onSelect={handleSelect}
-            user={user}
-          />
-        )}
-        {currentView === 'builder' && user?.role === 'admin' && (
-          <React.Suspense fallback={<div>Loading Builder...</div>}>
-            <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
-          </React.Suspense>
-        )}
+          )}
+          {currentView === 'builder' && user?.role === 'admin' && (
+            <React.Suspense fallback={<div>Loading Builder...</div>}>
+              <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
+            </React.Suspense>
+          )}
+        </div>
+
       </main>
     </div>
   );
