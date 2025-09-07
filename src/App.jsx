@@ -159,13 +159,22 @@ const App = () => {
           />
         )}
         {currentView === 'details' && selectedItem && (
-          <DetailsView
-            item={selectedItem}
-            type={selectedType}
-            onUnregister={handleUnregister}
-            onBack={handleBack}
-            user={user}
-          />
+            <DetailsView
+              item={selectedItem}
+              type={selectedType}
+              onUnregister={handleUnregister}
+              onBack={handleBack}
+              user={user}
+              onUpdateItem={(updated, type) => {
+                if (type === 'agent') {
+                  setAgents(prev => prev.map(a => a.id === updated.id ? updated : a));
+                  setSelectedItem(updated);
+                } else {
+                  setMcpServers(prev => prev.map(m => m.id === updated.id ? updated : m));
+                  setSelectedItem(updated);
+                }
+              }}
+            />
         )}
         {currentView === 'monitor' && (
           <MonitorView

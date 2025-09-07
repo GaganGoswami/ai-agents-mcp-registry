@@ -130,6 +130,11 @@ export const EXAMPLE_MCP_SERVERS = [
     compatible: ['anthropic', 'claude'],
     status: 'online',
     instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.slack:9000", {token: "your-slack-token"})'
+      ,
+      versions: [
+        { v: '1.0', changelog: 'Initial release' },
+        { v: '1.1', changelog: 'Added Slack events support' }
+      ]
   },
   {
     id: 'github-mcp',
@@ -139,6 +144,11 @@ export const EXAMPLE_MCP_SERVERS = [
     compatible: ['github', 'mcp'],
     status: 'online',
     instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.github:9001", {token: "your-github-token"})'
+      ,
+      versions: [
+        { v: '1.0', changelog: 'Initial release' },
+        { v: '1.2', changelog: 'Added GitHub Actions integration' }
+      ]
   },
   {
     id: 'postgres-mcp',
@@ -148,6 +158,11 @@ export const EXAMPLE_MCP_SERVERS = [
     compatible: ['postgresql', 'mcp'],
     status: 'offline',
     instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.postgres:9002", {token: "your-postgres-token"})'
+      ,
+      versions: [
+        { v: '1.0', changelog: 'Initial release' },
+        { v: '1.1', changelog: 'Improved connection pooling' }
+      ]
   },
   {
     id: 'google-drive-mcp',
@@ -157,6 +172,11 @@ export const EXAMPLE_MCP_SERVERS = [
     compatible: ['google-drive', 'mcp'],
     status: 'online',
     instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.drive:9003", {token: "your-drive-token"})'
+      ,
+      versions: [
+        { v: '1.0', changelog: 'Initial release' },
+        { v: '1.1', changelog: 'Added folder sync support' }
+      ]
   },
   {
     id: 'puppeteer-mcp',
@@ -166,5 +186,10 @@ export const EXAMPLE_MCP_SERVERS = [
     compatible: ['puppeteer', 'mcp'],
     status: 'offline',
     instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.puppeteer:9004", {token: "your-puppeteer-token"})'
+      ,
+      versions: [
+        { v: '1.0', changelog: 'Initial release' },
+        { v: '1.1', changelog: 'Added screenshot API' }
+      ]
   }
 ];
