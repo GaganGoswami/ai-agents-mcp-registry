@@ -5,6 +5,7 @@ function getUnique(arr, key) {
   return Array.from(new Set(arr.flatMap(i => i[key] || []))).sort();
 }
 import ImportModal from './ImportModal';
+import SearchBar from './SearchBar';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
 import MonitorCharts from './MonitorCharts';
@@ -19,7 +20,16 @@ const PRICING_MODELS = [
   'Custom',
 ];
 
-function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, onNlpRegister, recommendations = [], handleExport, handleImport }) {
+function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, onNlpRegister, recommendations = [], handleExport, handleImport, sections = {} }) {
+  // Section visibility controls (allow reuse for Registry vs Dashboard)
+  const {
+    showFilters = true,
+    showLists = true,
+    showCharts = true,
+    showLogs = true,
+    showGraph = true,
+    showRecommendations = true,
+  } = sections;
   // Theme state
   // Local theme mirrors body attribute but can be changed via the select.
   const [theme, setTheme] = useState(() => document.body.getAttribute('data-color-scheme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
@@ -99,6 +109,12 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   // Grouping state
   const [groupKey, setGroupKey] = useState('none');
 
+  // Search & chip tags for unified top bar
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTags, setSearchTags] = useState([]);
+  const allTags = Array.from(new Set([...agents, ...mcpServers].flatMap(i => i.tags || [])));
+  const toggleSearchTag = tag => setSearchTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+
   // Combined filter
   const filterItem = item => {
     if (!item) return false;
@@ -111,6 +127,16 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
     // Tags (all selected tags must be present)
     if (selectedTags.length > 0) {
       if (!item.tags || !selectedTags.every(tag => item.tags.includes(tag))) return false;
+    }
+    // Search query text match across name/description/tags
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matches = (item.name || '').toLowerCase().includes(q) || (item.description || '').toLowerCase().includes(q) || (item.tags || []).some(t => t.toLowerCase().includes(q));
+      if (!matches) return false;
+    }
+    // Search bar selected tags
+    if (searchTags.length > 0) {
+      if (!item.tags || !searchTags.every(tag => item.tags.includes(tag))) return false;
     }
     // Verified
     if (showVerifiedOnly && !item.verified) return false;
@@ -153,12 +179,31 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   const onlineAgents = liveAgents.filter(a => a.status === 'online').length;
   const onlineMCP = liveMcpServers.filter(m => m.status === 'online').length;
 
+  // Aggregated analytics for sidebar (when filters hidden)
+  const combinedItems = [...liveAgents, ...liveMcpServers];
+  const totalInvocations = combinedItems.reduce((sum, i) => sum + (i.usageStats?.invocations || 0), 0);
+  const totalErrors = combinedItems.reduce((sum, i) => sum + (i.usageStats?.error || 0), 0);
+  const totalSuccess = combinedItems.reduce((sum, i) => sum + (i.usageStats?.success || 0), 0);
+  const successRate = totalInvocations > 0 ? ((totalSuccess / (totalSuccess + totalErrors)) * 100).toFixed(1) : '—';
+  const topByUsage = [...combinedItems]
+    .sort((a, b) => (b.usageStats?.invocations || 0) - (a.usageStats?.invocations || 0))
+    .slice(0, 5);
+  const topByErrors = [...combinedItems]
+    .sort((a, b) => (b.usageStats?.error || 0) - (a.usageStats?.error || 0))
+    .filter(i => (i.usageStats?.error || 0) > 0)
+    .slice(0, 5);
+  const statusCounts = combinedItems.reduce((acc, i) => { const s = i.status || 'unknown'; acc[s] = (acc[s] || 0) + 1; return acc; }, {});
+  const governanceCounts = combinedItems.reduce((acc, i) => { const s = i.governanceStatus || 'pending'; acc[s] = (acc[s] || 0) + 1; return acc; }, {});
+  const tagFrequency = combinedItems.flatMap(i => i.tags || []).reduce((acc, t) => { acc[t] = (acc[t] || 0) + 1; return acc; }, {});
+  const topTags = Object.entries(tagFrequency).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
   const isDark = theme === 'dark';
   return (
     <div className="view active" style={{ background: isDark ? '#23272f' : '#fff', minHeight: '100vh', color: isDark ? '#e0e6ed' : '#222' }}>
-      <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
-  {/* Sidebar for advanced filters */}
-        <div style={{ minWidth: 180, maxWidth: 240, background: isDark ? '#23272f' : '#f8fafc', borderRadius: 12, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content', border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222' }}>
+  <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
+  {/* Sidebar: filters or analytics */}
+    {showFilters ? (
+    <div style={{ minWidth: 200, maxWidth: 260, background: isDark ? '#23272f' : '#f8fafc', borderRadius: 12, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content', border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222' }}>
           {/* Theme Switcher */}
           <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Theme</div>
           <select value={theme} onChange={e => setTheme(e.target.value)} style={{ width: '100%', padding: 6, borderRadius: 8, border: theme === 'dark' ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, marginBottom: 12, background: theme === 'dark' ? '#23272f' : '#fff', color: theme === 'dark' ? '#e0e6ed' : '#222' }}>
@@ -238,8 +283,97 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             ))}
           </select>
   </div>
+        ) : (
+        <div style={{ minWidth: 240, maxWidth: 280, background: isDark ? '#23272f' : '#f8fafc', borderRadius: 12, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content', border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222', display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Overview</div>
+            <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+              <div>Total Invocations: <strong>{totalInvocations}</strong></div>
+              <div>Success: <strong>{totalSuccess}</strong></div>
+              <div>Errors: <strong style={{ color: totalErrors > 0 ? '#ff5459' : undefined }}>{totalErrors}</strong></div>
+              <div>Success Rate: <strong>{successRate}%</strong></div>
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Status</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+              {Object.entries(statusCounts).map(([s, c]) => (
+                <div key={s} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ textTransform: 'capitalize' }}>{s}</span>
+                  <span>{c}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Governance</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
+              {Object.entries(governanceCounts).map(([s, c]) => (
+                <div key={s} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ textTransform: 'capitalize' }}>{s}</span>
+                  <span>{c}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {topByUsage.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Top Usage</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {topByUsage.map(i => (
+                  <div key={i.id} style={{ fontSize: 13, display: 'flex', flexDirection: 'column', background: isDark ? '#1e2228' : '#fff', padding: 8, borderRadius: 8, boxShadow: isDark ? '0 1px 4px #1116' : 'var(--shadow-sm)' }}>
+                    <span style={{ fontWeight: 500 }}>{i.name}</span>
+                    <span style={{ fontSize: 12, color: isDark ? '#b0b8c1' : '#555' }}>Invocations: {i.usageStats?.invocations || 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {topByErrors.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Top Errors</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {topByErrors.map(i => (
+                  <div key={i.id} style={{ fontSize: 13, display: 'flex', flexDirection: 'column', background: '#392424', padding: 8, borderRadius: 8, boxShadow: isDark ? '0 1px 4px #1116' : 'var(--shadow-sm)', color: '#ffb5b7' }}>
+                    <span style={{ fontWeight: 500 }}>{i.name}</span>
+                    <span style={{ fontSize: 12 }}>Errors: {i.usageStats?.error || 0}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {topTags.length > 0 && (
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Top Tags</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {topTags.map(([tag, count]) => (
+                  <span key={tag} style={{ fontSize: 12, background: isDark ? '#1e2228' : '#fff', padding: '4px 8px', borderRadius: 16, boxShadow: isDark ? '0 1px 4px #1116' : 'var(--shadow-sm)' }}>{tag} ({count})</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        )}
         {/* Main dashboard content */}
         <div style={{ flex: 1 }}>
+          {/* Unified Search / Actions bar (always visible to keep UX consistent) */}
+          <div style={{ marginBottom: 20 }}>
+            <SearchBar
+              query={searchQuery}
+              onQueryChange={setSearchQuery}
+              tags={allTags}
+              selectedTags={searchTags}
+              onTagToggle={toggleSearchTag}
+              items={[...agents, ...mcpServers]}
+            />
+            {user?.role === 'admin' && (
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
+                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={handleExport} aria-label="Export registry data">Export</button>
+                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={() => setShowImportModal(true)} aria-label="Import registry data">Import</button>
+              </div>
+            )}
+          </div>
           {/* Top stats and admin actions */}
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 24 }}>
             <div>
@@ -250,14 +384,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
               <div style={{ fontWeight: 600, fontSize: 18 }}>MCP Servers</div>
               <div style={{ fontSize: 13, color: isDark ? '#b0b8c1' : 'var(--color-text-secondary)' }}>Total: {mcpServers.length} | Online: {onlineMCP}</div>
             </div>
-            {user?.role === 'admin' && (
-              <div style={{ display: 'flex', gap: 12 }}>
-                {/* <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button> */}
-                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
-                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={handleExport} aria-label="Export registry data">Export</button>
-                <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={() => setShowImportModal(true)} aria-label="Import registry data">Import</button>
-              </div>
-            )}
+            {/* (Admin action buttons now live in unified bar) */}
           </div>
           {/* NLP Registration Modal */}
           {showNlpModal && (
@@ -294,7 +421,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             />
           )}
           {/* Recommendations Section */}
-          {recommendations.length > 0 && (
+          {showRecommendations && recommendations.length > 0 && (
             <div style={{ marginBottom: 24, background: isDark ? '#23272f' : 'var(--color-background)', borderRadius: 8, padding: 16, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-md)', border: isDark ? '1px solid #444' : 'none' }}>
               <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 8 }}>Recommended MCP Pairings</div>
               {recommendations.map(({ agent, mcp }, idx) => (
@@ -305,9 +432,9 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             </div>
           )}
           {/* Monitoring Charts */}
-          <MonitorCharts agents={liveAgents} mcpServers={liveMcpServers} />
+          {showCharts && <MonitorCharts agents={liveAgents} mcpServers={liveMcpServers} />}
           {/* Alert system for error spikes */}
-          {(() => {
+          {showCharts && (() => {
             const totalErrors = [...liveAgents, ...liveMcpServers].reduce((sum, item) => sum + (item.usageStats?.error || 0), 0);
             if (totalErrors > 10) {
               return (
@@ -320,11 +447,11 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             return null;
           })()}
           {/* Log Viewer for audit logs */}
-          <LogViewer agents={liveAgents} mcpServers={liveMcpServers} />
+          {showLogs && <LogViewer agents={liveAgents} mcpServers={liveMcpServers} />}
           {/* Dependency Graph Visualization */}
-          <DependencyGraph agents={agents} mcpServers={mcpServers} />
+          {showGraph && <DependencyGraph agents={agents} mcpServers={mcpServers} />}
           {/* Agent and MCP lists */}
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+          {showLists && <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 320 }}>
               <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>Agents</div>
               {Object.entries(groupItems(sortItems(liveAgents.filter(filterItem)), groupKey)).map(([group, items]) => (
@@ -349,7 +476,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GovernanceView from './components/GovernanceView';
 import { EXAMPLE_AGENTS, EXAMPLE_MCP_SERVERS } from './data/examples';
 import Dashboard from './components/Dashboard';
+import RegistryView from './components/RegistryView';
 import RegisterWizard from './components/RegisterWizard';
 import DetailsView from './components/DetailsView';
 import MonitorView from './components/MonitorView';
@@ -24,7 +25,7 @@ const getInitialData = (key, fallback) => {
 
 const App = () => {
   const [user, setUser] = useState(null); // {username, role}
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('dashboard'); // dashboard now analytics; new 'registry' view for lists
   const [agents, setAgents] = useState(() => getInitialData(LOCAL_KEY_AGENTS, EXAMPLE_AGENTS));
   const [mcpServers, setMcpServers] = useState(() => getInitialData(LOCAL_KEY_MCP, EXAMPLE_MCP_SERVERS));
   const [darkMode, setDarkMode] = useState(() => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -109,7 +110,7 @@ const App = () => {
   return (
     <div>
       <header className="app-header" style={{ background: isDark ? '#1e2228' : undefined, borderBottom: isDark ? '1px solid #333' : undefined, color: isDark ? '#e0e6ed' : undefined }}>
-        <span className="app-title">🤖 AI Agents & MCP Registry</span>
+        <span className="app-title">🤖 AgentMatrix</span>
         <div>
           <span style={{ marginRight: 16, fontSize: 14, color: 'var(--color-text-secondary)' }}>
             {user.username} ({user.role})
@@ -159,6 +160,20 @@ const App = () => {
           }}
           onClick={() => setCurrentView('dashboard')}
         >Dashboard</button>
+        <button
+          className="nav-btn"
+          style={{
+            color: isDark ? '#e0e6ed' : '#234',
+            textDecoration: 'none',
+            padding: '8px 18px',
+            borderRadius: 8,
+            background: currentView === 'registry' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+            border: currentView === 'registry' ? '1px solid #31737d' : '1px solid transparent',
+            fontWeight: currentView === 'registry' ? 600 : 500,
+            fontSize: 18
+          }}
+          onClick={() => setCurrentView('registry')}
+        >Registry</button>
         <button
           className="nav-btn"
           style={{
@@ -266,19 +281,10 @@ const App = () => {
           userSelect: 'none',
           opacity: 0.7
         } : {}}>
-          {currentView === 'dashboard' ? (
-            <>
-              <SearchBar
-                query={searchQuery}
-                onQueryChange={setSearchQuery}
-                tags={allTags}
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                items={[...agents, ...mcpServers]}
-              />
+          {currentView === 'dashboard' && (
               <Dashboard
-                agents={filterItems(agents)}
-                mcpServers={filterItems(mcpServers)}
+                agents={agents}
+                mcpServers={mcpServers}
                 onSelect={handleSelect}
                 onRegister={handleRegister}
                 user={user}
@@ -319,9 +325,40 @@ const App = () => {
                     alert('NLP registration failed. Please check your API key and try again.');
                   }
                 }}
+                sections={{
+                  showFilters: false,
+                  showLists: false,
+                  showCharts: true,
+                  showLogs: true,
+                  showGraph: true,
+                  showRecommendations: true
+                }}
+              />
+          )}
+          {currentView === 'registry' && (
+            <>
+              <SearchBar
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
+                tags={allTags}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+                items={[...agents, ...mcpServers]}
+              />
+              <RegistryView
+                agents={filterItems(agents)}
+                mcpServers={filterItems(mcpServers)}
+                onSelect={handleSelect}
+                onRegister={handleRegister}
+                user={user}
+                onImportData={(newAgents, newMcpServers) => {
+                  setAgents(newAgents);
+                  setMcpServers(newMcpServers);
+                }}
+                onNlpRegister={() => {}}
               />
             </>
-          ) : null}
+          )}
           {currentView === 'details' && selectedItem && (
               <DetailsView
                 item={selectedItem}
