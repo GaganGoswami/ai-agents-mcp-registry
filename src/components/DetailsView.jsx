@@ -1,6 +1,8 @@
 import React from 'react';
 import HealthChecker from './HealthChecker';
 import InstructionsGenerator from './InstructionsGenerator';
+import SDKGenerator from './SDKGenerator';
+import TestingSandbox from './TestingSandbox';
 
 /**
  * Details view for agent or MCP server
@@ -18,8 +20,10 @@ const DetailsView = ({ item, type, onUnregister, onBack }) => (
     <div style={{ marginBottom: 8 }}><b>Endpoint:</b> <span style={{ fontFamily: 'var(--font-family-mono)' }}>{item.endpoint}</span></div>
     <div style={{ marginBottom: 8 }}><b>Compatible:</b> {item.compatible && item.compatible.join(', ')}</div>
     <div style={{ marginBottom: 8 }}><b>Status:</b> <span className={`status ${item.status}`}>{item.status}</span></div>
-    <HealthChecker item={item} />
-    <InstructionsGenerator item={item} />
+  <HealthChecker item={item} />
+  <InstructionsGenerator item={item} />
+  <SDKGenerator item={item} />
+  <TestingSandbox item={item} />
     <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
       <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => onUnregister(item, type)} aria-label="Unregister">Unregister</button>
       <button className="nav-btn" onClick={onBack} aria-label="Back">Back</button>
