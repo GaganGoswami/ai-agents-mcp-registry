@@ -10,6 +10,7 @@ const ImportModal = ({ onImportData, onClose }) => {
   const [importSource, setImportSource] = useState('file');
   const [importUrl, setImportUrl] = useState('');
   const [importError, setImportError] = useState('');
+  const [importSuccess, setImportSuccess] = useState(false);
 
   const handleFileImport = e => {
     const file = e.target.files[0];
@@ -20,7 +21,8 @@ const ImportModal = ({ onImportData, onClose }) => {
         const data = JSON.parse(evt.target.result);
         if (Array.isArray(data.agents) && Array.isArray(data.mcpServers)) {
           onImportData(data.agents, data.mcpServers);
-          onClose();
+          setImportSuccess(true);
+          setTimeout(() => onClose(), 1200);
         } else {
           setImportError('Invalid file format.');
         }
@@ -38,7 +40,8 @@ const ImportModal = ({ onImportData, onClose }) => {
       const data = await res.json();
       if (Array.isArray(data.agents) && Array.isArray(data.mcpServers)) {
         onImportData(data.agents, data.mcpServers);
-        onClose();
+        setImportSuccess(true);
+        setTimeout(() => onClose(), 1200);
       } else {
         setImportError('Invalid data format from URL.');
       }
@@ -54,6 +57,9 @@ const ImportModal = ({ onImportData, onClose }) => {
         <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 10 }}>
           <span title="Expected format: { agents: [...], mcpServers: [...] }">Format: <code>{`{ agents: [...], mcpServers: [...] }`}</code></span>
           <a href="https://gist.github.com/" target="_blank" rel="noopener" style={{ marginLeft: 8, color: '#31737d', textDecoration: 'underline' }}>Example</a>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+          Sample public registry URL: <code>https://raw.githubusercontent.com/GaganGoswami/ai-agents-mcp-registry/main/public/sample-registry.json</code>
         </div>
         <div style={{ marginBottom: 16, display: 'flex', gap: 16 }}>
           <label style={{ fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -75,6 +81,7 @@ const ImportModal = ({ onImportData, onClose }) => {
           </div>
         )}
         {importError && <div style={{ color: 'var(--color-error)', marginBottom: 8 }}>{importError}</div>}
+        {importSuccess && <div style={{ color: 'var(--color-success)', marginBottom: 8 }}>Import successful!</div>}
         <button className="nav-btn" style={{ marginTop: 8, background: 'var(--color-error)' }} onClick={onClose}>Cancel</button>
       </div>
     </div>

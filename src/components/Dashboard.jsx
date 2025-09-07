@@ -76,8 +76,6 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
                 {/* <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button> */}
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={handleExport} aria-label="Export registry data">Export</button>
-                <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => fileInputRef.current.click()} aria-label="Import registry data">Import</button>
-                {/* <input type="file" accept="application/json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} /> */}
                 <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => setShowImportModal(true)} aria-label="Import registry data">Import</button>
               </div>
             )}
