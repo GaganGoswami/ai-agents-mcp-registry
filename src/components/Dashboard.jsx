@@ -1,5 +1,6 @@
 import React from 'react';
 import ItemCard from './ItemCard';
+import DependencyGraph from './DependencyGraph';
 
 /**
  * Dashboard view: lists agents and MCP servers, with search/filter
@@ -52,6 +53,9 @@ const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user }) => {
           ))}
         </div>
       )}
+
+      {/* Dependency Graph Visualization */}
+      <DependencyGraph agents={agents} mcpServers={mcpServers} />
 
       <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: 320 }}>
