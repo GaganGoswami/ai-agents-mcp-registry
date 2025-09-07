@@ -185,7 +185,15 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
                 <textarea value={nlpInput} onChange={e => setNlpInput(e.target.value)} rows={5} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }} placeholder="Describe your agent or MCP server in natural language..." />
               </div>
               <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-                <button className="nav-btn" onClick={() => { if (onNlpRegister) onNlpRegister(nlpInput); setShowNlpModal(false); setNlpInput(''); }}>Submit</button>
+                <button className="nav-btn" onClick={async () => {
+                  if (onNlpRegister) {
+                    const result = await onNlpRegister(nlpInput);
+                    if (result && result.governanceStatus === undefined) {
+                      result.governanceStatus = 'pending';
+                    }
+                  }
+                  setShowNlpModal(false); setNlpInput('');
+                }}>Submit</button>
                 <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => { setShowNlpModal(false); setNlpInput(''); }}>Cancel</button>
               </div>
             </div>
@@ -194,7 +202,10 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
           {showImportModal && (
             <ImportModal
               onImportData={(newAgents, newMcpServers) => {
-                if (handleImport) handleImport({ agents: newAgents, mcpServers: newMcpServers });
+                // Ensure governanceStatus is set for all imported items
+                const normAgents = newAgents.map(a => ({ ...a, governanceStatus: a.governanceStatus || 'pending' }));
+                const normMcpServers = newMcpServers.map(m => ({ ...m, governanceStatus: m.governanceStatus || 'pending' }));
+                if (handleImport) handleImport({ agents: normAgents, mcpServers: normMcpServers });
                 setShowImportModal(false);
               }}
               onClose={() => setShowImportModal(false)}

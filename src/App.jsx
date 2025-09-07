@@ -55,8 +55,9 @@ const App = () => {
   }, []);
 
   const handleRegisterConfirm = useCallback((data, type) => {
-    if (type === 'agent') setAgents(prev => [...prev, data]);
-    else setMcpServers(prev => [...prev, data]);
+  const normalized = { ...data, governanceStatus: data.governanceStatus || 'pending' };
+  if (type === 'agent') setAgents(prev => [...prev, normalized]);
+  else setMcpServers(prev => [...prev, normalized]);
     setShowRegister(false);
     setCurrentView('dashboard');
   }, []);
