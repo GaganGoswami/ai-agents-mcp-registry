@@ -1,4 +1,5 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
+import { Handle, Position } from '@xyflow/react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { ReactFlow, MiniMap, Controls, Background, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
@@ -12,6 +13,29 @@ const initialNodes = [
 const initialEdges = [
   { id: 'e1-2', source: '1', target: '2', animated: true }
 ];
+
+const AgentNode = ({ data }) => (
+  <div style={{ background: data.color || '#4f8cff', color: '#fff', borderRadius: 8, padding: 8, minWidth: 80, textAlign: 'center', boxShadow: 'var(--shadow-sm)', fontWeight: 500, position: 'relative' }}>
+    <Handle type="source" position={Position.Right} id="out" style={{ background: '#fff', border: '2px solid #4f8cff', width: 12, height: 12, top: '50%', right: -6, transform: 'translateY(-50%)' }} />
+    <span style={{ fontSize: 22 }}>{data.icon || '🤖'}</span><br />
+    {data.label}
+    <Handle type="target" position={Position.Left} id="in" style={{ background: '#fff', border: '2px solid #4f8cff', width: 12, height: 12, top: '50%', left: -6, transform: 'translateY(-50%)' }} />
+  </div>
+);
+
+const McpNode = ({ data }) => (
+  <div style={{ background: data.color || '#ffb84f', color: '#222', borderRadius: 8, padding: 8, minWidth: 80, textAlign: 'center', boxShadow: 'var(--shadow-sm)', fontWeight: 500, position: 'relative' }}>
+    <Handle type="source" position={Position.Right} id="out" style={{ background: '#222', border: '2px solid #ffb84f', width: 12, height: 12, top: '50%', right: -6, transform: 'translateY(-50%)' }} />
+    <span style={{ fontSize: 22 }}>{data.icon || '🗄️'}</span><br />
+    {data.label}
+    <Handle type="target" position={Position.Left} id="in" style={{ background: '#222', border: '2px solid #ffb84f', width: 12, height: 12, top: '50%', left: -6, transform: 'translateY(-50%)' }} />
+  </div>
+);
+
+const nodeTypes = {
+  agent: AgentNode,
+  mcp: McpNode
+};
 
 const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
   // Yjs setup
@@ -129,36 +153,117 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
   };
 
   return (
-    <div className="view active" style={{ maxWidth: 900, margin: '0 auto', background: 'var(--color-surface)', borderRadius: 12, padding: 24, boxShadow: 'var(--shadow-md)' }}>
-      <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 8 }}>🛠️ Agent & MCP Builder</div>
-      <div style={{ fontSize: 15, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        Drag and drop agents and MCP servers to visually build workflows. Connect nodes to define dependencies.
+    <div className="view active" style={{
+      position: 'relative',
+      width: '100%',
+      height: 'calc(100vh - 120px)', // adjust for header/nav
+      background: 'var(--color-surface)',
+      borderRadius: 12,
+      padding: 0,
+      boxShadow: 'var(--shadow-md)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
+      {!yReady && (
+        <div style={{ background: '#ffe0e0', color: '#b00', padding: 12, borderRadius: 8, marginBottom: 16, fontWeight: 500 }}>
+          Connecting to collaboration server...
+        </div>
+      )}
+      <div style={{ padding: '24px 32px 0 32px' }}>
+        <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 8 }}>🛠️ Agent & MCP Builder</div>
+        <div style={{ fontSize: 15, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+          Drag and drop agents and MCP servers to visually build workflows. Connect nodes to define dependencies.<br />
+          <span style={{ color: '#4f8cff', fontWeight: 500 }}>
+            Real-time collaboration enabled! Open this builder in multiple tabs or devices to see live sync.
+          </span>
+        </div>
       </div>
-      <div style={{ display: 'flex', gap: 24 }}>
+      <div style={{ flex: 1, display: 'flex', gap: 24, minHeight: 0, padding: '0 32px 0 32px' }}>
         {/* Node palette */}
-        <div style={{ minWidth: 180 }}>
+  <div style={{ minWidth: 180, maxWidth: 220, flexShrink: 0, overflowY: 'auto', paddingBottom: 24 }}>
           <div style={{ fontWeight: 500, marginBottom: 8 }}>Palette</div>
           <div style={{ marginBottom: 8 }}>
             <b>Agents:</b>
-            <ul style={{ paddingLeft: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
               {agents.map(a => (
-                <li key={a.id} draggable onDragStart={handleDragStart('agent', a.name)} style={{ cursor: 'grab', marginBottom: 4 }}>{a.name}</li>
+                <div
+                  key={a.id}
+                  draggable
+                  onDragStart={handleDragStart('agent', a.name)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#f4f8ff',
+                    border: '1px solid #4f8cff',
+                    borderRadius: 10,
+                    padding: '8px 14px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    color: '#234',
+                    cursor: 'grab',
+                    boxShadow: '0 1px 4px rgba(79,140,255,0.08)',
+                    transition: 'background 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseDown={e => e.currentTarget.style.background = '#e0edff'}
+                  onMouseUp={e => e.currentTarget.style.background = '#f4f8ff'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#f4f8ff'}
+                  aria-label={`Drag ${a.name}`}
+                >
+                  <span style={{ fontSize: 20, marginRight: 2 }}>🤖</span>
+                  {a.name}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
-          <div>
+          <div style={{ marginTop: 12 }}>
             <b>MCP Servers:</b>
-            <ul style={{ paddingLeft: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
               {mcpServers.map(m => (
-                <li key={m.id} draggable onDragStart={handleDragStart('mcp', m.name)} style={{ cursor: 'grab', marginBottom: 4 }}>{m.name}</li>
+                <div
+                  key={m.id}
+                  draggable
+                  onDragStart={handleDragStart('mcp', m.name)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: '#fff7e6',
+                    border: '1px solid #ffb84f',
+                    borderRadius: 10,
+                    padding: '8px 14px',
+                    fontWeight: 500,
+                    fontSize: 15,
+                    color: '#7a4f00',
+                    cursor: 'grab',
+                    boxShadow: '0 1px 4px rgba(255,184,79,0.08)',
+                    transition: 'background 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseDown={e => e.currentTarget.style.background = '#ffe6b3'}
+                  onMouseUp={e => e.currentTarget.style.background = '#fff7e6'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#fff7e6'}
+                  aria-label={`Drag ${m.name}`}
+                >
+                  <span style={{ fontSize: 20, marginRight: 2 }}>🗄️</span>
+                  {m.name}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
         {/* ReactFlow workspace */}
         <div
           ref={workspaceRef}
-          style={{ flex: 1, height: 500, background: '#fff', borderRadius: 8 }}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            height: '100%',
+            background: '#fff',
+            borderRadius: 8,
+            overflow: 'hidden',
+            display: 'flex'
+          }}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
         >
@@ -171,20 +276,8 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
             onNodeClick={handleNodeClick}
             fitView
             attributionPosition="top-right"
-            nodeTypes={{
-              agent: ({ data }) => (
-                <div style={{ background: data.color || '#4f8cff', color: '#fff', borderRadius: 8, padding: 8, minWidth: 80, textAlign: 'center', boxShadow: 'var(--shadow-sm)', fontWeight: 500 }}>
-                  <span style={{ fontSize: 22 }}>{data.icon || '🤖'}</span><br />
-                  {data.label}
-                </div>
-              ),
-              mcp: ({ data }) => (
-                <div style={{ background: data.color || '#ffb84f', color: '#222', borderRadius: 8, padding: 8, minWidth: 80, textAlign: 'center', boxShadow: 'var(--shadow-sm)', fontWeight: 500 }}>
-                  <span style={{ fontSize: 22 }}>{data.icon || '🗄️'}</span><br />
-                  {data.label}
-                </div>
-              )
-            }}
+            nodeTypes={nodeTypes}
+            style={{ width: '100%', height: '100%' }}
           >
             <MiniMap zoomable pannable />
             <Controls />
