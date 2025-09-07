@@ -1,0 +1,31 @@
+{
+  "name": "ai-agents-mcp-registry",
+  "version": "1.0.0",
+  "description": "Catalog and Monitoring Platform for AI Agents and MCP Servers",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "serve-static": "npx serve .",
+    "dev-static": "npx live-server .",
+    "start": "npm run serve-static",
+    "clean": "rm -rf node_modules package-lock.json && npm install"
+  },
+  "keywords": [
+    "ai-agents", "mcp", "registry", "monitoring", "react", "vite"
+  ],
+  "author": "AI Registry App",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
