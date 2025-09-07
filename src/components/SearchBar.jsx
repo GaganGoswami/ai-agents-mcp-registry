@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 /**
  * SearchBar component for semantic search and tag filtering
@@ -9,16 +9,59 @@ import React, { useState } from 'react';
  * @param {Array} props.selectedTags
  * @param {Function} props.onTagToggle
  */
+const COMMON_QUERIES = [
+  'RAG agent',
+  'MCP with vector search',
+  'OpenAI integration',
+  'Postgres',
+  'Realtime monitoring',
+  'Free agents',
+  'Enterprise MCP',
+];
+
 const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, items }) => {
   const [semanticResults, setSemanticResults] = useState([]);
   const [semanticMode, setSemanticMode] = useState(false);
   const [input, setInput] = useState(query);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
+  const inputRef = useRef();
+
+  // Build suggestions from names, tags, and common queries
+  const suggestions = [
+    ...items.map(i => i.name),
+    ...tags,
+    ...COMMON_QUERIES
+  ].filter((s, idx, arr) => arr.indexOf(s) === idx && s.toLowerCase().includes(input.toLowerCase()) && s.toLowerCase() !== input.toLowerCase()).slice(0, 8);
 
   const handleInputChange = e => {
     setInput(e.target.value);
     onQueryChange(e.target.value);
+    setShowSuggestions(e.target.value.length > 0 && suggestions.length > 0);
+    setHighlightedIdx(-1);
   };
 
+  const handleSuggestionClick = suggestion => {
+    setInput(suggestion);
+    onQueryChange(suggestion);
+    setShowSuggestions(false);
+    inputRef.current.blur();
+  };
+
+  const handleInputKeyDown = e => {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      setHighlightedIdx(idx => Math.min(idx + 1, suggestions.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      setHighlightedIdx(idx => Math.max(idx - 1, 0));
+    } else if (e.key === 'Enter' && highlightedIdx >= 0) {
+      handleSuggestionClick(suggestions[highlightedIdx]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
+  // Restore semantic search handler
   const handleSemanticSearch = async () => {
     if (!input || !items?.length) return;
     try {
@@ -73,15 +116,54 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
     }
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16, position: 'relative' }}>
       <input
+        ref={inputRef}
         type="text"
         value={input}
         onChange={handleInputChange}
+        onKeyDown={handleInputKeyDown}
         placeholder="Semantic search (e.g. 'RAG agent with Postgres')"
         style={{ padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14, width: '100%' }}
         aria-label="Semantic search"
+        autoComplete="off"
+        onFocus={() => setShowSuggestions(input.length > 0 && suggestions.length > 0)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 120)}
       />
+      {/* Query Suggestions Dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: 38,
+          left: 0,
+          width: '100%',
+          background: '#fff',
+          border: '1px solid #e0e6ed',
+          borderRadius: 8,
+          boxShadow: 'var(--shadow-md)',
+          zIndex: 100,
+          maxHeight: 220,
+          overflowY: 'auto',
+        }}>
+          {suggestions.map((s, idx) => (
+            <div
+              key={s}
+              style={{
+                padding: '8px 14px',
+                background: highlightedIdx === idx ? '#e0f7fa' : '#fff',
+                cursor: 'pointer',
+                fontSize: 15,
+                borderBottom: idx < suggestions.length - 1 ? '1px solid #f0f0f0' : 'none',
+              }}
+              onMouseDown={() => handleSuggestionClick(s)}
+              onMouseEnter={() => setHighlightedIdx(idx)}
+              aria-selected={highlightedIdx === idx}
+            >
+              {s}
+            </div>
+          ))}
+        </div>
+      )}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {tags.map(tag => (
           <button
