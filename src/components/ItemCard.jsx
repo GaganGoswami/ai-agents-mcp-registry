@@ -30,6 +30,9 @@ const ItemCard = ({ item, type, onSelect }) => (
     </div>
     <div className="description" style={{ marginTop: 4 }}>{item.description}</div>
     <div className={`status ${item.status}`}>{item.status}</div>
+    <div style={{ marginTop: 4, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
+      Governance: <span style={{ fontWeight: 500 }}>{item.governanceStatus || 'pending'}</span>
+    </div>
     <div style={{ marginTop: 8, fontSize: '12px', color: 'var(--color-text-secondary)' }}>
       {type === 'agent' ? 'Agent' : 'MCP Server'}
     </div>

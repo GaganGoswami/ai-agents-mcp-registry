@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import GovernanceView from './components/GovernanceView';
 import { EXAMPLE_AGENTS, EXAMPLE_MCP_SERVERS } from './data/examples';
 import Dashboard from './components/Dashboard';
 import RegisterWizard from './components/RegisterWizard';
@@ -193,6 +194,20 @@ const App = () => {
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
+                background: currentView === 'governance' ? '#31737d' : '#31737d22',
+                border: currentView === 'governance' ? '1px solid #31737d' : 'none',
+                fontWeight: currentView === 'governance' ? 600 : 500,
+                fontSize: 18
+              }}
+              onClick={() => setCurrentView('governance')}
+            >Governance</button>
+            <button
+              className="nav-btn"
+              style={{
+                color: '#234',
+                textDecoration: 'none',
+                padding: '8px 18px',
+                borderRadius: 8,
                 background: currentView === 'builder' ? '#31737d' : '#31737d22',
                 border: currentView === 'builder' ? '1px solid #31737d' : 'none',
                 fontWeight: currentView === 'builder' ? 600 : 500,
@@ -334,6 +349,26 @@ const App = () => {
             <React.Suspense fallback={<div>Loading Builder...</div>}>
               <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
             </React.Suspense>
+          )}
+          {currentView === 'governance' && user?.role === 'admin' && (
+            <GovernanceView
+              agents={agents}
+              mcpServers={mcpServers}
+              onApprove={(item, type) => {
+                if (type === 'agent') {
+                  setAgents(prev => prev.map(a => a.id === item.id ? { ...a, governanceStatus: 'approved' } : a));
+                } else {
+                  setMcpServers(prev => prev.map(m => m.id === item.id ? { ...m, governanceStatus: 'approved' } : m));
+                }
+              }}
+              onReject={(item, type) => {
+                if (type === 'agent') {
+                  setAgents(prev => prev.map(a => a.id === item.id ? { ...a, governanceStatus: 'rejected' } : a));
+                } else {
+                  setMcpServers(prev => prev.map(m => m.id === item.id ? { ...m, governanceStatus: 'rejected' } : m));
+                }
+              }}
+            />
           )}
         </div>
 

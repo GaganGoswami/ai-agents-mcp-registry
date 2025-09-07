@@ -93,7 +93,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
     if (showVerifiedOnly && !item.verified) return false;
     // Type
     if (selectedType && item.type !== selectedType) return false;
-    return true;
+  return true;
   };
 
   const onlineAgents = liveAgents.filter(a => a.status === 'online').length;
@@ -102,7 +102,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   return (
     <div className="view active">
       <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
-        {/* Sidebar for advanced filters */}
+  {/* Sidebar for advanced filters */}
         <div style={{ minWidth: 180, maxWidth: 240, background: '#f8fafc', borderRadius: 12, boxShadow: 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content' }}>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Filters</div>
           {/* Pricing Model */}

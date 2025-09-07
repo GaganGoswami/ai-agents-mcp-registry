@@ -17,7 +17,8 @@ export const EXAMPLE_AGENTS = [
     comments: [],
     visibility: 'public',
   verified: true,
-  pricingModel: 'Subscription'
+  pricingModel: 'Subscription',
+  governanceStatus: 'approved'
   },
   {
     id: 'chatbot',
@@ -36,7 +37,8 @@ export const EXAMPLE_AGENTS = [
     comments: [],
     visibility: 'private',
   verified: true,
-  pricingModel: 'Free'
+  pricingModel: 'Free',
+  governanceStatus: 'pending'
   },
   {
     id: 'web-research',
@@ -54,7 +56,8 @@ export const EXAMPLE_AGENTS = [
     auditLogs: [],
     comments: [],
   visibility: 'public',
-  pricingModel: 'Pay-per-use'
+  pricingModel: 'Pay-per-use',
+  governanceStatus: 'approved'
   },
   {
     id: 'process-automator',
@@ -72,7 +75,8 @@ export const EXAMPLE_AGENTS = [
     auditLogs: [],
     comments: [],
   visibility: 'public',
-  pricingModel: 'Enterprise'
+  pricingModel: 'Enterprise',
+  governanceStatus: 'rejected'
   },
   {
     id: 'code-assistant-mcp',
