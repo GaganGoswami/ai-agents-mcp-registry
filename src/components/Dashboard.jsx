@@ -1,8 +1,13 @@
 
 import React, { useRef, useState } from 'react';
+// Helper to get unique tags/types
+function getUnique(arr, key) {
+  return Array.from(new Set(arr.flatMap(i => i[key] || []))).sort();
+}
 import ImportModal from './ImportModal';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
+import MonitorCharts from './MonitorCharts';
 
 // Example PRICING_MODELS and filterByPricing for context
 const PRICING_MODELS = [
@@ -18,20 +23,30 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   console.log('DASHBOARD AGENTS:', agents);
   console.log('DASHBOARD MCP_SERVERS:', mcpServers);
   const [selectedPricing, setSelectedPricing] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [selectedType, setSelectedType] = useState('');
   const [showNlpModal, setShowNlpModal] = useState(false);
   const [nlpInput, setNlpInput] = useState('');
   const [showImportModal, setShowImportModal] = useState(false);
 
-  const filterByPricing = item => {
-    if (selectedPricing.length === 0) return true;
-    // Normalize both sides for robust matching
-    const itemModel = (item.pricingModel || '').toLowerCase().trim();
-    const selectedNormalized = selectedPricing.map(m => m.toLowerCase().trim());
-    const match = selectedNormalized.includes(itemModel);
-    if (!match) {
-      console.log('FILTER OUT:', item.name, '| item.pricingModel:', item.pricingModel, '| selectedPricing:', selectedPricing);
+  // Combined filter
+  const filterItem = item => {
+    // Pricing
+    if (selectedPricing.length > 0) {
+      const itemModel = (item.pricingModel || '').toLowerCase().trim();
+      const selectedNormalized = selectedPricing.map(m => m.toLowerCase().trim());
+      if (!selectedNormalized.includes(itemModel)) return false;
     }
-    return match;
+    // Tags
+    if (selectedTags.length > 0) {
+      if (!item.tags || !selectedTags.every(tag => item.tags.includes(tag))) return false;
+    }
+    // Verified
+    if (showVerifiedOnly && !item.verified) return false;
+    // Type
+    if (selectedType && item.type !== selectedType) return false;
+    return true;
   };
 
   const onlineAgents = agents.filter(a => a.status === 'online').length;
@@ -40,9 +55,10 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   return (
     <div className="view active">
       <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
-        {/* Sidebar for monetization filters */}
-        <div style={{ minWidth: 180, maxWidth: 220, background: '#f8fafc', borderRadius: 12, boxShadow: 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content' }}>
+        {/* Sidebar for advanced filters */}
+        <div style={{ minWidth: 180, maxWidth: 240, background: '#f8fafc', borderRadius: 12, boxShadow: 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content' }}>
           <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 10 }}>Filters</div>
+          {/* Pricing Model */}
           <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 6 }}>Pricing Model</div>
           {PRICING_MODELS.map(model => (
             <label key={model} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 14 }}>
@@ -58,6 +74,40 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
               {model}
             </label>
           ))}
+          {/* Tags */}
+          <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Tags</div>
+          {getUnique([...agents, ...mcpServers], 'tags').map(tag => (
+            <label key={tag} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 14 }}>
+              <input
+                type="checkbox"
+                checked={selectedTags.includes(tag)}
+                onChange={e => {
+                  setSelectedTags(prev =>
+                    e.target.checked ? [...prev, tag] : prev.filter(t => t !== tag)
+                  );
+                }}
+              />
+              {tag}
+            </label>
+          ))}
+          {/* Verified */}
+          <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Verified Only</div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 14 }}>
+            <input
+              type="checkbox"
+              checked={showVerifiedOnly}
+              onChange={e => setShowVerifiedOnly(e.target.checked)}
+            />
+            Show only verified
+          </label>
+          {/* Type */}
+          <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Type</div>
+          <select value={selectedType} onChange={e => setSelectedType(e.target.value)} style={{ width: '100%', padding: 6, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }}>
+            <option value="">All</option>
+            {getUnique([...agents, ...mcpServers], 'type').map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         </div>
         {/* Main dashboard content */}
         <div style={{ flex: 1 }}>
@@ -114,19 +164,21 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
               ))}
             </div>
           )}
+          {/* Monitoring Charts */}
+          <MonitorCharts agents={agents} mcpServers={mcpServers} />
           {/* Dependency Graph Visualization */}
           <DependencyGraph agents={agents} mcpServers={mcpServers} />
           {/* Agent and MCP lists */}
           <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 320 }}>
               <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>Agents</div>
-              {agents.filter(filterByPricing).map(agent => (
+              {agents.filter(filterItem).map(agent => (
                 <ItemCard key={agent.id} item={agent} type="agent" onSelect={onSelect} />
               ))}
             </div>
             <div style={{ flex: 1, minWidth: 320 }}>
               <div style={{ fontWeight: 500, fontSize: 16, marginBottom: 8 }}>MCP Servers</div>
-              {mcpServers.filter(filterByPricing).map(mcp => (
+              {mcpServers.filter(filterItem).map(mcp => (
                 <ItemCard key={mcp.id} item={mcp} type="mcp" onSelect={onSelect} />
               ))}
             </div>
