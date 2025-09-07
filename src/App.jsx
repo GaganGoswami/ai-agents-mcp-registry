@@ -147,6 +147,10 @@ const App = () => {
               onSelect={handleSelect}
               onRegister={handleRegister}
               user={user}
+              onImportData={(newAgents, newMcpServers) => {
+                setAgents(newAgents);
+                setMcpServers(newMcpServers);
+              }}
             />
           </>
         )}

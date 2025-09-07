@@ -35,7 +35,13 @@ const DetailsView = ({ item, type, onUnregister, onBack, user, onUpdateItem }) =
   // Visibility toggle handler
   const handleVisibilityChange = () => {
     if (user?.role !== 'admin') return;
-    const updated = { ...item, visibility: item.visibility === 'public' ? 'private' : 'public' };
+    const newVisibility = item.visibility === 'public' ? 'private' : 'public';
+    const logEntry = `${new Date().toLocaleString()}: ${user.username} changed visibility to ${newVisibility}`;
+    const updated = {
+      ...item,
+      visibility: newVisibility,
+      auditLogs: [...(item.auditLogs || []), logEntry]
+    };
     if (onUpdateItem) onUpdateItem(updated, type);
   };
   // Add comment handler
@@ -43,6 +49,22 @@ const DetailsView = ({ item, type, onUnregister, onBack, user, onUpdateItem }) =
     if (!user) return;
     const updated = { ...item, comments: [...(item.comments || []), `${user.username}: ${comment}`] };
     if (onUpdateItem) onUpdateItem(updated, type);
+  };
+
+  // Unregister handler with audit log
+  const handleUnregisterWithAudit = () => {
+    if (user?.role !== 'admin') {
+      onUnregister(item, type);
+      return;
+    }
+    const logEntry = `${new Date().toLocaleString()}: ${user.username} unregistered this item.`;
+    const updated = {
+      ...item,
+      auditLogs: [...(item.auditLogs || []), logEntry]
+    };
+    if (onUpdateItem) onUpdateItem(updated, type);
+    // Call original unregister after updating logs
+    setTimeout(() => onUnregister(updated, type), 0);
   };
 
   return (
@@ -69,7 +91,7 @@ const DetailsView = ({ item, type, onUnregister, onBack, user, onUpdateItem }) =
       <TestingSandbox item={item} />
       <CommentsSection item={item} onAddComment={handleAddComment} />
       <div style={{ display: 'flex', gap: 16, marginTop: 24 }}>
-        <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => onUnregister(item, type)} aria-label="Unregister">Unregister</button>
+  <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={handleUnregisterWithAudit} aria-label="Unregister">Unregister</button>
         <button className="nav-btn" onClick={onBack} aria-label="Back">Back</button>
       </div>
     </div>

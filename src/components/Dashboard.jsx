@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ItemCard from './ItemCard';
 import DependencyGraph from './DependencyGraph';
 
@@ -11,7 +11,40 @@ import DependencyGraph from './DependencyGraph';
  * @param {Function} props.onRegister
  * @param {Object} props.user
  */
-const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user }) => {
+const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user, onImportData }) => {
+  // Export registry data as JSON
+  const handleExport = () => {
+    const data = { agents, mcpServers };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'registry-backup.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import registry data from JSON
+  const fileInputRef = useRef();
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (Array.isArray(data.agents) && Array.isArray(data.mcpServers)) {
+          if (onImportData) onImportData(data.agents, data.mcpServers);
+          alert('Registry imported successfully!');
+        } else {
+          alert('Invalid registry file format.');
+        }
+      } catch {
+        alert('Failed to parse registry file.');
+      }
+    };
+    reader.readAsText(file);
+  };
   const onlineAgents = agents.filter(a => a.status === 'online').length;
   const onlineMCP = mcpServers.filter(m => m.status === 'online').length;
 
@@ -26,7 +59,7 @@ const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user }) => {
 
   return (
     <div className="view active">
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 24 }}>
+  <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 24 }}>
         <div>
           <div style={{ fontWeight: 600, fontSize: 18 }}>Agents</div>
           <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Total: {agents.length} | Online: {onlineAgents}</div>
@@ -36,8 +69,11 @@ const Dashboard = ({ agents, mcpServers, onSelect, onRegister, user }) => {
           <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>Total: {mcpServers.length} | Online: {onlineMCP}</div>
         </div>
         {user?.role === 'admin' && (
-          <div>
+          <div style={{ display: 'flex', gap: 12 }}>
             <button className="nav-btn" style={{ fontSize: 14 }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button>
+            <button className="nav-btn" style={{ fontSize: 14 }} onClick={handleExport} aria-label="Export registry data">Export</button>
+            <button className="nav-btn" style={{ fontSize: 14 }} onClick={() => fileInputRef.current.click()} aria-label="Import registry data">Import</button>
+            <input type="file" accept="application/json" ref={fileInputRef} style={{ display: 'none' }} onChange={handleImport} />
           </div>
         )}
       </div>
