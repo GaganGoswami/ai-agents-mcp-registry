@@ -105,9 +105,10 @@ const App = () => {
     return <AuthLogin onLogin={setUser} />;
   }
 
+  const isDark = darkMode;
   return (
     <div>
-      <header className="app-header">
+      <header className="app-header" style={{ background: isDark ? '#1e2228' : undefined, borderBottom: isDark ? '1px solid #333' : undefined, color: isDark ? '#e0e6ed' : undefined }}>
         <span className="app-title">🤖 AI Agents & MCP Registry</span>
         <div>
           <span style={{ marginRight: 16, fontSize: 14, color: 'var(--color-text-secondary)' }}>
@@ -133,25 +134,26 @@ const App = () => {
         display: 'flex',
         alignItems: 'center',
         gap: 18,
-        background: '#f8fafc',
-        borderBottom: '1px solid #e0e6ed',
+        background: isDark ? '#23272f' : '#f8fafc',
+        borderBottom: isDark ? '1px solid #333' : '1px solid #e0e6ed',
         padding: '0 32px',
         height: 56,
         fontWeight: 500,
         fontSize: 16,
         position: 'sticky',
         top: 0,
-        zIndex: 10
+        zIndex: 10,
+        color: isDark ? '#e0e6ed' : '#222'
       }} aria-label="Main Navigation">
         <button
           className="nav-btn"
           style={{
-            color: '#234',
+            color: isDark ? '#e0e6ed' : '#234',
             textDecoration: 'none',
             padding: '8px 18px',
             borderRadius: 8,
-            background: currentView === 'dashboard' ? '#31737d' : '#31737d22',
-            border: currentView === 'dashboard' ? '1px solid #31737d' : 'none',
+            background: currentView === 'dashboard' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+            border: currentView === 'dashboard' ? '1px solid #31737d' : '1px solid transparent',
             fontWeight: currentView === 'dashboard' ? 600 : 500,
             fontSize: 18
           }}
@@ -160,12 +162,12 @@ const App = () => {
         <button
           className="nav-btn"
           style={{
-            color: '#234',
+            color: isDark ? '#e0e6ed' : '#234',
             textDecoration: 'none',
             padding: '8px 18px',
             borderRadius: 8,
-            background: currentView === 'monitor' ? '#31737d' : '#31737d22',
-            border: currentView === 'monitor' ? '1px solid #31737d' : 'none',
+            background: currentView === 'monitor' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+            border: currentView === 'monitor' ? '1px solid #31737d' : '1px solid transparent',
             fontWeight: currentView === 'monitor' ? 600 : 500,
             fontSize: 18
           }}
@@ -176,12 +178,12 @@ const App = () => {
             <button
               className="nav-btn"
               style={{
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: showRegister ? '#31737d' : '#31737d22',
-                border: showRegister ? '1px solid #31737d' : 'none',
+                background: showRegister ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+                border: showRegister ? '1px solid #31737d' : '1px solid transparent',
                 fontWeight: showRegister ? 600 : 500,
                 fontSize: 18
               }}
@@ -191,12 +193,12 @@ const App = () => {
             <button
               className="nav-btn"
               style={{
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: currentView === 'governance' ? '#31737d' : '#31737d22',
-                border: currentView === 'governance' ? '1px solid #31737d' : 'none',
+                background: currentView === 'governance' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+                border: currentView === 'governance' ? '1px solid #31737d' : '1px solid transparent',
                 fontWeight: currentView === 'governance' ? 600 : 500,
                 fontSize: 18
               }}
@@ -205,12 +207,12 @@ const App = () => {
             <button
               className="nav-btn"
               style={{
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: currentView === 'builder' ? '#31737d' : '#31737d22',
-                border: currentView === 'builder' ? '1px solid #31737d' : 'none',
+                background: currentView === 'builder' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+                border: currentView === 'builder' ? '1px solid #31737d' : '1px solid transparent',
                 fontWeight: currentView === 'builder' ? 600 : 500,
                 fontSize: 18
               }}
