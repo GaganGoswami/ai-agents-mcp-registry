@@ -8,7 +8,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8000/rag',
     compatible: ['langchain', 'openai', 'postgresql'],
     status: 'online',
-    instructions: '1. Install: pip install langchain\n2. Connect: from langchain import Agent; agent = Agent(endpoint="http://localhost:8000/rag")'
+    instructions: '1. Install: pip install langchain\n2. Connect: from langchain import Agent; agent = Agent(endpoint="http://localhost:8000/rag")',
+    tags: ['rag', 'nlp', 'postgresql'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: ['postgres-mcp'],
+    usageStats: {invocations: 100, success: 98, error: 2},
+    auditLogs: [],
+    comments: [],
+    visibility: 'public'
   },
   {
     id: 'chatbot',
@@ -18,7 +25,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8001/chat',
     compatible: ['crewai', 'anthropic'],
     status: 'offline',
-    instructions: '1. Install: pip install crewai\n2. Connect: from crewai import Chatbot; bot = Chatbot(endpoint="http://localhost:8001/chat")'
+    instructions: '1. Install: pip install crewai\n2. Connect: from crewai import Chatbot; bot = Chatbot(endpoint="http://localhost:8001/chat")',
+    tags: ['chatbot', 'streaming'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: [],
+    usageStats: {invocations: 50, success: 45, error: 5},
+    auditLogs: [],
+    comments: [],
+    visibility: 'private'
   },
   {
     id: 'web-research',
@@ -28,7 +42,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8002/research',
     compatible: ['serpapi', 'langchain'],
     status: 'online',
-    instructions: '1. Install: pip install serpapi\n2. Connect: agent = WebResearchAgent(endpoint="http://localhost:8002/research")'
+    instructions: '1. Install: pip install serpapi\n2. Connect: agent = WebResearchAgent(endpoint="http://localhost:8002/research")',
+    tags: ['web-research', 'summarization'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: [],
+    usageStats: {invocations: 30, success: 29, error: 1},
+    auditLogs: [],
+    comments: [],
+    visibility: 'public'
   },
   {
     id: 'process-automator',
@@ -38,7 +59,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8003/automate',
     compatible: ['airflow', 'python'],
     status: 'online',
-    instructions: '1. Install: pip install airflow\n2. Connect: automator = ProcessAutomator(endpoint="http://localhost:8003/automate")'
+    instructions: '1. Install: pip install airflow\n2. Connect: automator = ProcessAutomator(endpoint="http://localhost:8003/automate")',
+    tags: ['automator', 'workflow'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: [],
+    usageStats: {invocations: 20, success: 20, error: 0},
+    auditLogs: [],
+    comments: [],
+    visibility: 'public'
   },
   {
     id: 'code-assistant-mcp',
@@ -48,7 +76,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8004/code',
     compatible: ['mcp', 'github'],
     status: 'offline',
-    instructions: '1. Install: npm install mcp-sdk\n2. Connect: assistant = CodeAssistant(endpoint="http://localhost:8004/code")'
+    instructions: '1. Install: npm install mcp-sdk\n2. Connect: assistant = CodeAssistant(endpoint="http://localhost:8004/code")',
+    tags: ['code', 'assistant', 'mcp'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: ['github-mcp'],
+    usageStats: {invocations: 10, success: 9, error: 1},
+    auditLogs: [],
+    comments: [],
+    visibility: 'private'
   },
   {
     id: 'multimodal',
@@ -58,7 +93,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8005/multimodal',
     compatible: ['openai', 'anthropic'],
     status: 'online',
-    instructions: '1. Install: pip install openai\n2. Connect: assistant = MultimodalAssistant(endpoint="http://localhost:8005/multimodal")'
+    instructions: '1. Install: pip install openai\n2. Connect: assistant = MultimodalAssistant(endpoint="http://localhost:8005/multimodal")',
+    tags: ['multimodal', 'assistant'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: [],
+    usageStats: {invocations: 5, success: 5, error: 0},
+    auditLogs: [],
+    comments: [],
+    visibility: 'public'
   },
   {
     id: 'local-first',
@@ -68,7 +110,14 @@ export const EXAMPLE_AGENTS = [
     endpoint: 'http://localhost:8006/local',
     compatible: ['sqlite', 'python'],
     status: 'online',
-    instructions: '1. Install: pip install sqlite3\n2. Connect: agent = LocalFirstAgent(endpoint="http://localhost:8006/local")'
+    instructions: '1. Install: pip install sqlite3\n2. Connect: agent = LocalFirstAgent(endpoint="http://localhost:8006/local")',
+    tags: ['local', 'privacy'],
+    versions: [{v: '1.0', changelog: 'Initial release'}],
+    dependencies: [],
+    usageStats: {invocations: 2, success: 2, error: 0},
+    auditLogs: [],
+    comments: [],
+    visibility: 'private'
   }
 ];
 
