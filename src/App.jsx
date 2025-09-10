@@ -5,7 +5,7 @@ import Dashboard from './components/Dashboard';
 import RegistryView from './components/RegistryView';
 import RegisterWizard from './components/RegisterWizard';
 import DetailsView from './components/DetailsView';
-import MonitorView from './components/MonitorView';
+// import MonitorView from './components/MonitorView';
 import AuthLogin from './components/AuthLogin';
 import SearchBar from './components/SearchBar';
 // Builder view (to be implemented)
@@ -174,20 +174,7 @@ const App = () => {
           }}
           onClick={() => setCurrentView('registry')}
         >Registry</button>
-        <button
-          className="nav-btn"
-          style={{
-            color: isDark ? '#e0e6ed' : '#234',
-            textDecoration: 'none',
-            padding: '8px 18px',
-            borderRadius: 8,
-            background: currentView === 'monitor' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
-            border: currentView === 'monitor' ? '1px solid #31737d' : '1px solid transparent',
-            fontWeight: currentView === 'monitor' ? 600 : 500,
-            fontSize: 18
-          }}
-          onClick={() => setCurrentView('monitor')}
-        >Monitor</button>
+  {/* Monitor tab removed */}
         {user.role === 'admin' && (
           <>
             <button
@@ -377,14 +364,7 @@ const App = () => {
                 }}
               />
           )}
-          {currentView === 'monitor' && (
-            <MonitorView
-              agents={agents}
-              mcpServers={mcpServers}
-              onSelect={handleSelect}
-              user={user}
-            />
-          )}
+          {/* Monitor screen removed */}
           {currentView === 'builder' && user?.role === 'admin' && (
             <React.Suspense fallback={<div>Loading Builder...</div>}>
               <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
