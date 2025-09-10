@@ -281,6 +281,17 @@ const App = () => {
                 }}
                 onNlpRegister={async (nlpText) => {
                   if (!nlpText) return;
+                  // If nlpText is an object, it's a simulated registration
+                  if (typeof nlpText === 'object' && nlpText !== null) {
+                    if (nlpText.type === 'agent') {
+                      setAgents(prev => [...prev, { ...nlpText }]);
+                    } else if (nlpText.type === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...nlpText }]);
+                    }
+                    // Do not show any error or call API for simulated registration
+                    return;
+                  }
+                  // Otherwise, proceed with real API call
                   try {
                     const response = await fetch('https://api.openai.com/v1/chat/completions', {
                       method: 'POST',
@@ -335,6 +346,17 @@ const App = () => {
                 }}
                 onNlpRegister={async (nlpText) => {
                   if (!nlpText) return;
+                  // If nlpText is an object, it's a simulated registration
+                  if (typeof nlpText === 'object' && nlpText !== null) {
+                    if (nlpText.type === 'agent') {
+                      setAgents(prev => [...prev, { ...nlpText }]);
+                    } else if (nlpText.type === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...nlpText }]);
+                    }
+                    // Do not show any error or call API for simulated registration
+                    return;
+                  }
+                  // Otherwise, proceed with real API call
                   try {
                     const response = await fetch('https://api.openai.com/v1/chat/completions', {
                       method: 'POST',

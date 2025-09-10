@@ -227,50 +227,7 @@ const SearchBar = ({ query, onQueryChange, tags, selectedTags, onTagToggle, item
             {tag}
           </button>
         ))}
-      </div>
-      <button
-        className="nav-btn"
-        style={{
-          marginTop: 8,
-          alignSelf: 'flex-start',
-          background: isDark ? '#31737d' : 'var(--color-primary)',
-          color: isDark ? '#e0e6ed' : '#fff',
-          border: 'none',
-          borderRadius: 10,
-          padding: '8px 18px',
-          fontSize: 14,
-          boxShadow: isDark ? '0 2px 6px #0009' : 'var(--shadow-sm)',
-          transition: 'background .25s'
-        }}
-        onClick={handleSemanticSearch}
-      >Semantic Search</button>
-      {semanticMode && (
-        <div style={{ marginTop: 16, background: isDark ? '#23272f' : '#f6f6f6', borderRadius: 10, padding: 14, border: isDark ? '1px solid #444' : '1px solid #eee', color: isDark ? '#e0e6ed' : '#222' }}>
-          <div style={{ fontWeight: 500, marginBottom: 8, fontSize: 15 }}>Semantic Results:</div>
-          <ul>
-            {semanticResults.map(r => (
-              <li key={r.item.id} style={{ marginBottom: 8, lineHeight: 1.25 }}>
-                <b>{r.item.name}</b> <span style={{ color: isDark ? '#b0b8c1' : '#888' }}>({r.score.toFixed(2)})</span><br />
-                <span style={{ fontSize: 13, color: isDark ? '#b0b8c1' : '#444' }}>{r.item.description}</span>
-              </li>
-            ))}
-          </ul>
-          <button
-            className="nav-btn"
-            style={{
-              marginTop: 8,
-              background: isDark ? '#31737d' : 'var(--color-primary)',
-              color: isDark ? '#e0e6ed' : '#fff',
-              border: 'none',
-              borderRadius: 8,
-              padding: '6px 14px',
-              fontSize: 13,
-              boxShadow: isDark ? '0 2px 6px #0009' : 'var(--shadow-sm)'
-            }}
-            onClick={() => setSemanticMode(false)}
-          >Back to normal search</button>
-        </div>
-      )}
+  </div>
     </div>
   );
 };

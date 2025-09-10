@@ -102,6 +102,7 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
   const [selectedType, setSelectedType] = useState('');
   const [showNlpModal, setShowNlpModal] = useState(false);
   const [nlpInput, setNlpInput] = useState('');
+  const [simulateNlp, setSimulateNlp] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   // Sorting state
   const [sortKey, setSortKey] = useState('name');
@@ -387,17 +388,51 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
               <div style={{ marginBottom: 8 }}>
                 <textarea value={nlpInput} onChange={e => setNlpInput(e.target.value)} rows={5} style={{ width: '100%', padding: 8, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, background: isDark ? '#23272f' : '#fff', color: isDark ? '#e0e6ed' : '#222' }} placeholder="Describe your agent or MCP server in natural language..." />
               </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, fontSize: 14 }}>
+                <input type="checkbox" checked={simulateNlp} onChange={e => setSimulateNlp(e.target.checked)} />
+                Simulate NLP registration (demo only)
+              </label>
               <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                 <button className="nav-btn" style={{ background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={async () => {
                   if (onNlpRegister) {
-                    const result = await onNlpRegister(nlpInput);
-                    if (result && result.governanceStatus === undefined) {
-                      result.governanceStatus = 'pending';
+                    if (simulateNlp) {
+                      // Simulate agent/MCP creation from input
+                      const text = nlpInput.trim();
+                      let details;
+                      if (/mcp/i.test(text)) {
+                        details = {
+                          id: `mcp-${Date.now()}`,
+                          name: text.slice(0, 32) || 'Simulated MCP',
+                          description: text,
+                          type: 'mcp',
+                          tags: ['simulated', 'nlp'],
+                          status: 'online',
+                          governanceStatus: 'pending',
+                          usageStats: { invocations: 0, success: 0, error: 0 },
+                        };
+                      } else {
+                        details = {
+                          id: `agent-${Date.now()}`,
+                          name: text.slice(0, 32) || 'Simulated Agent',
+                          description: text,
+                          type: 'agent',
+                          tags: ['simulated', 'nlp'],
+                          status: 'online',
+                          governanceStatus: 'pending',
+                          usageStats: { invocations: 0, success: 0, error: 0 },
+                        };
+                      }
+                      await onNlpRegister(details);
+                    } else {
+                      const result = await onNlpRegister(nlpInput);
+                      if (result && result.governanceStatus === undefined) {
+                        result.governanceStatus = 'pending';
+                      }
                     }
                   }
-                  setShowNlpModal(false); setNlpInput('');
+                  setShowNlpModal(false); setNlpInput(''); setSimulateNlp(false);
                 }}>Submit</button>
-                <button className="nav-btn" style={{ background: theme === 'dark' ? '#ff5459' : 'var(--color-error)', color: theme === 'dark' ? '#fff' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={() => { setShowNlpModal(false); setNlpInput(''); }}>Cancel</button>
+                <button className="nav-btn" style={{ background: theme === 'dark' ? '#ff5459' : 'var(--color-error)', color: theme === 'dark' ? '#fff' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)', transition: 'background 0.2s, color 0.2s' }} onClick={() => { setShowNlpModal(false); setNlpInput(''); setSimulateNlp(false); }}>Cancel</button>
               </div>
             </div>
           )}
