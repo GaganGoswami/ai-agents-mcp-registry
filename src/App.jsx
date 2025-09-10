@@ -333,7 +333,39 @@ const App = () => {
                   setAgents(newAgents);
                   setMcpServers(newMcpServers);
                 }}
-                onNlpRegister={() => {}}
+                onNlpRegister={async (nlpText) => {
+                  if (!nlpText) return;
+                  try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'sk-PLACEHOLDER'}`
+                      },
+                      body: JSON.stringify({
+                        model: 'gpt-4',
+                        messages: [
+                          { role: 'system', content: 'You are an expert at extracting structured agent/MCP details from natural language.' },
+                          { role: 'user', content: nlpText }
+                        ],
+                        temperature: 0.2
+                      })
+                    });
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content;
+                    let details;
+                    try { details = JSON.parse(content); } catch { details = { name: content }; }
+                    if (details.type === 'agent' || details.role === 'agent') {
+                      setAgents(prev => [...prev, { ...details, id: `agent-${Date.now()}` }]);
+                    } else if (details.type === 'mcp' || details.role === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...details, id: `mcp-${Date.now()}` }]);
+                    } else {
+                      alert('Could not determine type. Please specify agent or MCP in your description.');
+                    }
+                  } catch (err) {
+                    alert('NLP registration failed. Please check your API key and try again.');
+                  }
+                }}
               />
           )}
           {currentView === 'details' && selectedItem && (
