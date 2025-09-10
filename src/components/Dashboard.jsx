@@ -202,15 +202,9 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
     <div className="view active" style={{ background: isDark ? '#23272f' : '#fff', minHeight: '100vh', color: isDark ? '#e0e6ed' : '#222' }}>
   <div style={{ display: 'flex', flexDirection: 'row', gap: 24 }}>
   {/* Sidebar: filters or analytics */}
-    {showFilters ? (
-    <div style={{ minWidth: 200, maxWidth: 260, background: isDark ? '#23272f' : '#f8fafc', borderRadius: 12, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content', border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222' }}>
-          {/* Theme Switcher */}
-          <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Theme</div>
-          <select value={theme} onChange={e => setTheme(e.target.value)} style={{ width: '100%', padding: 6, borderRadius: 8, border: theme === 'dark' ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, marginBottom: 12, background: theme === 'dark' ? '#23272f' : '#fff', color: theme === 'dark' ? '#e0e6ed' : '#222' }}>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="accent">Accent</option>
-          </select>
+  {showFilters ? (
+  <div style={{ minWidth: 200, maxWidth: 260, background: isDark ? '#23272f' : '#f8fafc', borderRadius: 12, boxShadow: isDark ? '0 2px 8px #1116' : 'var(--shadow-sm)', padding: 18, marginRight: 8, height: 'fit-content', border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222' }}>
+      {/* Theme Switcher removed in Registry mode */}
           {/* Grouping Controls */}
           <div style={{ fontWeight: 500, fontSize: 15, margin: '12px 0 6px 0' }}>Group By</div>
           <select value={groupKey} onChange={e => setGroupKey(e.target.value)} style={{ width: '100%', padding: 6, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, marginBottom: 12, background: isDark ? '#23272f' : '#fff', color: isDark ? '#e0e6ed' : '#222' }}>
