@@ -184,21 +184,6 @@ const App = () => {
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: showRegister ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
-                border: showRegister ? '1px solid #31737d' : '1px solid transparent',
-                fontWeight: showRegister ? 600 : 500,
-                fontSize: 18
-              }}
-              onClick={handleRegister}
-              aria-label="Register new agent or MCP server"
-            >+ Register</button>
-            <button
-              className="nav-btn"
-              style={{
-                color: isDark ? '#e0e6ed' : '#234',
-                textDecoration: 'none',
-                padding: '8px 18px',
-                borderRadius: 8,
                 background: currentView === 'governance' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
                 border: currentView === 'governance' ? '1px solid #31737d' : '1px solid transparent',
                 fontWeight: currentView === 'governance' ? 600 : 500,

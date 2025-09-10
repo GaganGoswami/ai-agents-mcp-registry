@@ -363,6 +363,9 @@ function Dashboard({ agents = [], mcpServers = [], user, onRegister, onSelect, o
             />
             {user?.role === 'admin' && (
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+                {(user?.role === 'admin' || user?.role === 'developer') && (
+                  <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={onRegister} aria-label="Register new agent or MCP server">+ Register</button>
+                )}
                 <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={() => setShowNlpModal(true)} aria-label="NLP Register">NLP Register</button>
                 <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={handleExport} aria-label="Export registry data">Export</button>
                 <button className="nav-btn" style={{ fontSize: 14, background: theme === 'dark' ? '#31737d' : '#32b8c6', color: theme === 'dark' ? '#e0e6ed' : '#fff', border: 'none', borderRadius: 8, boxShadow: theme === 'dark' ? '0 1px 4px #1116' : 'var(--shadow-sm)' }} onClick={() => setShowImportModal(true)} aria-label="Import registry data">Import</button>
