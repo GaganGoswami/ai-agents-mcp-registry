@@ -175,7 +175,7 @@ const App = () => {
           onClick={() => setCurrentView('registry')}
         >Registry</button>
   {/* Monitor tab removed */}
-        {user.role === 'admin' && (
+        {(user.role === 'admin' || user.role === 'developer') && (
           <>
             <button
               className="nav-btn"
@@ -365,7 +365,7 @@ const App = () => {
               />
           )}
           {/* Monitor screen removed */}
-          {currentView === 'builder' && user?.role === 'admin' && (
+          {currentView === 'builder' && (user?.role === 'admin' || user?.role === 'developer') && (
             <React.Suspense fallback={<div>Loading Builder...</div>}>
               <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
             </React.Suspense>
