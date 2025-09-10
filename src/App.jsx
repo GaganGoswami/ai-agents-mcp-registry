@@ -323,15 +323,6 @@ const App = () => {
               />
           )}
           {currentView === 'registry' && (
-            <>
-              <SearchBar
-                query={searchQuery}
-                onQueryChange={setSearchQuery}
-                tags={allTags}
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                items={[...agents, ...mcpServers]}
-              />
               <RegistryView
                 agents={filterItems(agents)}
                 mcpServers={filterItems(mcpServers)}
@@ -344,7 +335,6 @@ const App = () => {
                 }}
                 onNlpRegister={() => {}}
               />
-            </>
           )}
           {currentView === 'details' && selectedItem && (
               <DetailsView
