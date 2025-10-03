@@ -1,0 +1,20 @@
+{
+  "agents": [
+    {
+      "id": "agent-001",
+      "name": "Example Agent",
+      "description": "A sample AI agent for demonstration.",
+      "status": "online",
+      "pricingModel": "Free"
+    }
+  ],
+  "mcpServers": [
+    {
+      "id": "mcp-001",
+      "name": "Example MCP Server",
+      "description": "A sample MCP server for demonstration.",
+      "status": "online",
+      "pricingModel": "Enterprise"
+    }
+  ]
+}

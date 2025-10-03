@@ -1,4 +1,5 @@
-# 🤖 AI Agents & MCP Registry
+# 🤖  AgentMatrix
+## AI Agents & MCP Registry
 
 A catalog and monitoring platform for AI agents and MCP (Model Context Protocol) servers. Easily register, discover, and monitor agents and MCP servers in your organization.
 

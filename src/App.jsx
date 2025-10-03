@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import GovernanceView from './components/GovernanceView';
 import { EXAMPLE_AGENTS, EXAMPLE_MCP_SERVERS } from './data/examples';
 import Dashboard from './components/Dashboard';
+import RegistryView from './components/RegistryView';
 import RegisterWizard from './components/RegisterWizard';
 import DetailsView from './components/DetailsView';
-import MonitorView from './components/MonitorView';
+// import MonitorView from './components/MonitorView';
 import AuthLogin from './components/AuthLogin';
 import SearchBar from './components/SearchBar';
 // Builder view (to be implemented)
@@ -23,7 +25,7 @@ const getInitialData = (key, fallback) => {
 
 const App = () => {
   const [user, setUser] = useState(null); // {username, role}
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState('dashboard'); // dashboard now analytics; new 'registry' view for lists
   const [agents, setAgents] = useState(() => getInitialData(LOCAL_KEY_AGENTS, EXAMPLE_AGENTS));
   const [mcpServers, setMcpServers] = useState(() => getInitialData(LOCAL_KEY_MCP, EXAMPLE_MCP_SERVERS));
   const [darkMode, setDarkMode] = useState(() => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -54,8 +56,9 @@ const App = () => {
   }, []);
 
   const handleRegisterConfirm = useCallback((data, type) => {
-    if (type === 'agent') setAgents(prev => [...prev, data]);
-    else setMcpServers(prev => [...prev, data]);
+  const normalized = { ...data, governanceStatus: data.governanceStatus || 'pending' };
+  if (type === 'agent') setAgents(prev => [...prev, normalized]);
+  else setMcpServers(prev => [...prev, normalized]);
     setShowRegister(false);
     setCurrentView('dashboard');
   }, []);
@@ -103,10 +106,11 @@ const App = () => {
     return <AuthLogin onLogin={setUser} />;
   }
 
+  const isDark = darkMode;
   return (
     <div>
-      <header className="app-header">
-        <span className="app-title">🤖 AI Agents & MCP Registry</span>
+      <header className="app-header" style={{ background: isDark ? '#1e2228' : undefined, borderBottom: isDark ? '1px solid #333' : undefined, color: isDark ? '#e0e6ed' : undefined }}>
+        <span className="app-title">🤖 AgentMatrix</span>
         <div>
           <span style={{ marginRight: 16, fontSize: 14, color: 'var(--color-text-secondary)' }}>
             {user.username} ({user.role})
@@ -131,25 +135,26 @@ const App = () => {
         display: 'flex',
         alignItems: 'center',
         gap: 18,
-        background: '#f8fafc',
-        borderBottom: '1px solid #e0e6ed',
+        background: isDark ? '#23272f' : '#f8fafc',
+        borderBottom: isDark ? '1px solid #333' : '1px solid #e0e6ed',
         padding: '0 32px',
         height: 56,
         fontWeight: 500,
         fontSize: 16,
         position: 'sticky',
         top: 0,
-        zIndex: 10
+        zIndex: 10,
+        color: isDark ? '#e0e6ed' : '#222'
       }} aria-label="Main Navigation">
         <button
           className="nav-btn"
           style={{
-            color: '#234',
+            color: isDark ? '#e0e6ed' : '#234',
             textDecoration: 'none',
             padding: '8px 18px',
             borderRadius: 8,
-            background: currentView === 'dashboard' ? '#31737d' : '#31737d22',
-            border: currentView === 'dashboard' ? '1px solid #31737d' : 'none',
+            background: currentView === 'dashboard' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+            border: currentView === 'dashboard' ? '1px solid #31737d' : '1px solid transparent',
             fontWeight: currentView === 'dashboard' ? 600 : 500,
             fontSize: 18
           }}
@@ -158,43 +163,43 @@ const App = () => {
         <button
           className="nav-btn"
           style={{
-            color: '#234',
+            color: isDark ? '#e0e6ed' : '#234',
             textDecoration: 'none',
             padding: '8px 18px',
             borderRadius: 8,
-            background: currentView === 'monitor' ? '#31737d' : '#31737d22',
-            border: currentView === 'monitor' ? '1px solid #31737d' : 'none',
-            fontWeight: currentView === 'monitor' ? 600 : 500,
+            background: currentView === 'registry' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+            border: currentView === 'registry' ? '1px solid #31737d' : '1px solid transparent',
+            fontWeight: currentView === 'registry' ? 600 : 500,
             fontSize: 18
           }}
-          onClick={() => setCurrentView('monitor')}
-        >Monitor</button>
-        {user.role === 'admin' && (
+          onClick={() => setCurrentView('registry')}
+        >Registry</button>
+  {/* Monitor tab removed */}
+        {(user.role === 'admin' || user.role === 'developer') && (
           <>
             <button
               className="nav-btn"
               style={{
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: showRegister ? '#31737d' : '#31737d22',
-                border: showRegister ? '1px solid #31737d' : 'none',
-                fontWeight: showRegister ? 600 : 500,
+                background: currentView === 'governance' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+                border: currentView === 'governance' ? '1px solid #31737d' : '1px solid transparent',
+                fontWeight: currentView === 'governance' ? 600 : 500,
                 fontSize: 18
               }}
-              onClick={handleRegister}
-              aria-label="Register new agent or MCP server"
-            >+ Register</button>
+              onClick={() => setCurrentView('governance')}
+            >Governance</button>
             <button
               className="nav-btn"
               style={{
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 textDecoration: 'none',
                 padding: '8px 18px',
                 borderRadius: 8,
-                background: currentView === 'builder' ? '#31737d' : '#31737d22',
-                border: currentView === 'builder' ? '1px solid #31737d' : 'none',
+                background: currentView === 'builder' ? '#31737d' : (isDark ? '#2c313a' : '#31737d22'),
+                border: currentView === 'builder' ? '1px solid #31737d' : '1px solid transparent',
                 fontWeight: currentView === 'builder' ? 600 : 500,
                 fontSize: 18
               }}
@@ -248,17 +253,73 @@ const App = () => {
           userSelect: 'none',
           opacity: 0.7
         } : {}}>
-          {currentView === 'dashboard' ? (
-            <>
-              <SearchBar
-                query={searchQuery}
-                onQueryChange={setSearchQuery}
-                tags={allTags}
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                items={[...agents, ...mcpServers]}
-              />
+          {currentView === 'dashboard' && (
               <Dashboard
+                agents={agents}
+                mcpServers={mcpServers}
+                onSelect={handleSelect}
+                onRegister={handleRegister}
+                user={user}
+                onImportData={(newAgents, newMcpServers) => {
+                  setAgents(newAgents);
+                  setMcpServers(newMcpServers);
+                }}
+                onNlpRegister={async (nlpText) => {
+                  if (!nlpText) return;
+                  // If nlpText is an object, it's a simulated registration
+                  if (typeof nlpText === 'object' && nlpText !== null) {
+                    if (nlpText.type === 'agent') {
+                      setAgents(prev => [...prev, { ...nlpText }]);
+                    } else if (nlpText.type === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...nlpText }]);
+                    }
+                    // Do not show any error or call API for simulated registration
+                    return;
+                  }
+                  // Otherwise, proceed with real API call
+                  try {
+                    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY || 'sk-PLACEHOLDER'}`
+                      },
+                      body: JSON.stringify({
+                        model: 'gpt-4',
+                        messages: [
+                          { role: 'system', content: 'You are an expert at extracting structured agent/MCP details from natural language.' },
+                          { role: 'user', content: nlpText }
+                        ],
+                        temperature: 0.2
+                      })
+                    });
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content;
+                    let details;
+                    try { details = JSON.parse(content); } catch { details = { name: content }; }
+                    if (details.type === 'agent' || details.role === 'agent') {
+                      setAgents(prev => [...prev, { ...details, id: `agent-${Date.now()}` }]);
+                    } else if (details.type === 'mcp' || details.role === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...details, id: `mcp-${Date.now()}` }]);
+                    } else {
+                      alert('Could not determine type. Please specify agent or MCP in your description.');
+                    }
+                  } catch (err) {
+                    alert('NLP registration failed. Please check your API key and try again.');
+                  }
+                }}
+                sections={{
+                  showFilters: false,
+                  showLists: false,
+                  showCharts: true,
+                  showLogs: true,
+                  showGraph: true,
+                  showRecommendations: true
+                }}
+              />
+          )}
+          {currentView === 'registry' && (
+              <RegistryView
                 agents={filterItems(agents)}
                 mcpServers={filterItems(mcpServers)}
                 onSelect={handleSelect}
@@ -270,6 +331,17 @@ const App = () => {
                 }}
                 onNlpRegister={async (nlpText) => {
                   if (!nlpText) return;
+                  // If nlpText is an object, it's a simulated registration
+                  if (typeof nlpText === 'object' && nlpText !== null) {
+                    if (nlpText.type === 'agent') {
+                      setAgents(prev => [...prev, { ...nlpText }]);
+                    } else if (nlpText.type === 'mcp') {
+                      setMcpServers(prev => [...prev, { ...nlpText }]);
+                    }
+                    // Do not show any error or call API for simulated registration
+                    return;
+                  }
+                  // Otherwise, proceed with real API call
                   try {
                     const response = await fetch('https://api.openai.com/v1/chat/completions', {
                       method: 'POST',
@@ -302,8 +374,7 @@ const App = () => {
                   }
                 }}
               />
-            </>
-          ) : null}
+          )}
           {currentView === 'details' && selectedItem && (
               <DetailsView
                 item={selectedItem}
@@ -322,18 +393,31 @@ const App = () => {
                 }}
               />
           )}
-          {currentView === 'monitor' && (
-            <MonitorView
-              agents={agents}
-              mcpServers={mcpServers}
-              onSelect={handleSelect}
-              user={user}
-            />
-          )}
-          {currentView === 'builder' && user?.role === 'admin' && (
+          {/* Monitor screen removed */}
+          {currentView === 'builder' && (user?.role === 'admin' || user?.role === 'developer') && (
             <React.Suspense fallback={<div>Loading Builder...</div>}>
               <BuilderView agents={agents} mcpServers={mcpServers} onSaveAgent={setAgents} onSaveMcp={setMcpServers} />
             </React.Suspense>
+          )}
+          {currentView === 'governance' && user?.role === 'admin' && (
+            <GovernanceView
+              agents={agents}
+              mcpServers={mcpServers}
+              onApprove={(item, type) => {
+                if (type === 'agent') {
+                  setAgents(prev => prev.map(a => a.id === item.id ? { ...a, governanceStatus: 'approved' } : a));
+                } else {
+                  setMcpServers(prev => prev.map(m => m.id === item.id ? { ...m, governanceStatus: 'approved' } : m));
+                }
+              }}
+              onReject={(item, type) => {
+                if (type === 'agent') {
+                  setAgents(prev => prev.map(a => a.id === item.id ? { ...a, governanceStatus: 'rejected' } : a));
+                } else {
+                  setMcpServers(prev => prev.map(m => m.id === item.id ? { ...m, governanceStatus: 'rejected' } : m));
+                }
+              }}
+            />
           )}
         </div>
 

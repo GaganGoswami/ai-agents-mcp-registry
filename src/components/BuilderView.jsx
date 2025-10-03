@@ -38,6 +38,17 @@ const nodeTypes = {
 };
 
 const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
+  // Theme sync (observe body attribute like other views)
+  const [theme, setTheme] = useState(() => document.body.getAttribute('data-color-scheme') || 'light');
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const attr = document.body.getAttribute('data-color-scheme') || 'light';
+      setTheme(prev => (prev !== attr ? attr : prev));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-color-scheme'] });
+    return () => observer.disconnect();
+  }, []);
+  const isDark = theme === 'dark';
   // Yjs setup
   const ydocRef = useRef();
   const nodesMapRef = useRef();
@@ -162,44 +173,46 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
       position: 'relative',
       width: '100%',
       height: 'calc(100vh - 120px)', // adjust for header/nav
-      background: 'var(--color-surface)',
+      background: isDark ? '#23272f' : 'var(--color-surface)',
       borderRadius: 12,
       padding: 0,
-      boxShadow: 'var(--shadow-md)',
+      boxShadow: isDark ? '0 4px 18px #1118' : 'var(--shadow-md)',
       display: 'flex',
       flexDirection: 'column',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      border: isDark ? '1px solid #444' : 'none',
+      color: isDark ? '#e0e6ed' : '#222'
     }}>
       {!yReady && (
-        <div style={{ background: '#ffe0e0', color: '#b00', padding: 12, borderRadius: 8, marginBottom: 16, fontWeight: 500 }}>
+        <div style={{ background: isDark ? '#2d1f00' : '#ffe0e0', color: isDark ? '#ffcc02' : '#b00', padding: 12, borderRadius: 8, marginBottom: 16, fontWeight: 500, border: isDark ? '1px solid #444' : 'none' }}>
           Connecting to collaboration server...
         </div>
       )}
       <div style={{ padding: '24px 32px 0 32px' }}>
-        <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 8 }}>🛠️ Agent & MCP Builder</div>
-        <div style={{ fontSize: 15, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 8, color: isDark ? '#e0e6ed' : '#222' }}>🛠️ Agent & MCP Builder</div>
+        <div style={{ fontSize: 15, color: isDark ? '#b0b8c1' : 'var(--color-text-secondary)', marginBottom: 16 }}>
           Drag and drop agents and MCP servers to visually build workflows. Connect nodes to define dependencies.<br />
-          <span style={{ color: '#4f8cff', fontWeight: 500 }}>
+          <span style={{ color: isDark ? '#32b8c6' : '#4f8cff', fontWeight: 500 }}>
             Real-time collaboration enabled! Open this builder in multiple tabs or devices to see live sync.
           </span>
         </div>
       </div>
       <div style={{ flex: 1, display: 'flex', gap: 24, minHeight: 0, padding: '0 32px 0 32px' }}>
         {/* Node palette */}
-  <div style={{ minWidth: 180, maxWidth: 220, flexShrink: 0, overflowY: 'auto', paddingBottom: 24 }}>
-    <div style={{ fontWeight: 500, marginBottom: 8 }}>Palette</div>
+  <div style={{ minWidth: 180, maxWidth: 220, flexShrink: 0, overflowY: 'auto', paddingBottom: 24, background: isDark ? '#1f242b' : 'transparent', borderRadius: 12 }}>
+    <div style={{ fontWeight: 500, marginBottom: 8, color: isDark ? '#e0e6ed' : '#222' }}>Palette</div>
     <input
       type="text"
       value={paletteQuery}
       onChange={e => setPaletteQuery(e.target.value)}
       placeholder="Search agents/MCPs..."
-      style={{ width: '100%', marginBottom: 10, padding: 7, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }}
+      style={{ width: '100%', marginBottom: 10, padding: 7, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, background: isDark ? '#2c313a' : '#fff', color: isDark ? '#e0e6ed' : '#222' }}
       aria-label="Search palette"
     />
     <div style={{ marginBottom: 8 }}>
       <button
         className="nav-btn"
-        style={{ fontSize: 14, marginBottom: 4, background: showAgents ? '#e0edff' : '#f4f8ff', color: '#234', border: '1px solid #4f8cff', borderRadius: 8 }}
+        style={{ fontSize: 14, marginBottom: 4, background: showAgents ? (isDark ? '#153a4a' : '#e0edff') : (isDark ? '#1e2d3a' : '#f4f8ff'), color: isDark ? '#32b8c6' : '#234', border: isDark ? '1px solid #31737d' : '1px solid #4f8cff', borderRadius: 8 }}
         onClick={() => setShowAgents(v => !v)}
       >{showAgents ? '▼' : '▶'} Agents</button>
       {showAgents && (
@@ -213,21 +226,21 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                background: '#f4f8ff',
-                border: '1px solid #4f8cff',
+                background: isDark ? '#1f2732' : '#f4f8ff',
+                border: isDark ? '1px solid #31737d' : '1px solid #4f8cff',
                 borderRadius: 10,
                 padding: '8px 14px',
                 fontWeight: 500,
                 fontSize: 15,
-                color: '#234',
+                color: isDark ? '#e0e6ed' : '#234',
                 cursor: 'grab',
-                boxShadow: '0 1px 4px rgba(79,140,255,0.08)',
+                boxShadow: isDark ? '0 1px 4px #0008' : '0 1px 4px rgba(79,140,255,0.08)',
                 transition: 'background 0.2s, box-shadow 0.2s',
                 position: 'relative'
               }}
-              onMouseDown={e => e.currentTarget.style.background = '#e0edff'}
-              onMouseUp={e => e.currentTarget.style.background = '#f4f8ff'}
-              onMouseLeave={e => { e.currentTarget.style.background = '#f4f8ff'; setTooltip({ visible: false }); }}
+              onMouseDown={e => e.currentTarget.style.background = isDark ? '#2a3644' : '#e0edff'}
+              onMouseUp={e => e.currentTarget.style.background = isDark ? '#1f2732' : '#f4f8ff'}
+              onMouseLeave={e => { e.currentTarget.style.background = isDark ? '#1f2732' : '#f4f8ff'; setTooltip({ visible: false }); }}
               onMouseMove={e => {
                 setTooltip({
                   visible: true,
@@ -248,7 +261,7 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
     <div style={{ marginTop: 12 }}>
       <button
         className="nav-btn"
-        style={{ fontSize: 14, marginBottom: 4, background: showMcps ? '#ffe6b3' : '#fff7e6', color: '#7a4f00', border: '1px solid #ffb84f', borderRadius: 8 }}
+        style={{ fontSize: 14, marginBottom: 4, background: showMcps ? (isDark ? '#4a3615' : '#ffe6b3') : (isDark ? '#3a2a10' : '#fff7e6'), color: isDark ? '#ffce80' : '#7a4f00', border: '1px solid #ffb84f', borderRadius: 8 }}
         onClick={() => setShowMcps(v => !v)}
       >{showMcps ? '▼' : '▶'} MCP Servers</button>
       {showMcps && (
@@ -262,21 +275,21 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                background: '#fff7e6',
+                background: isDark ? '#3a2a10' : '#fff7e6',
                 border: '1px solid #ffb84f',
                 borderRadius: 10,
                 padding: '8px 14px',
                 fontWeight: 500,
                 fontSize: 15,
-                color: '#7a4f00',
+                color: isDark ? '#ffce80' : '#7a4f00',
                 cursor: 'grab',
-                boxShadow: '0 1px 4px rgba(255,184,79,0.08)',
+                boxShadow: isDark ? '0 1px 4px #0008' : '0 1px 4px rgba(255,184,79,0.08)',
                 transition: 'background 0.2s, box-shadow 0.2s',
                 position: 'relative'
               }}
-              onMouseDown={e => e.currentTarget.style.background = '#ffe6b3'}
-              onMouseUp={e => e.currentTarget.style.background = '#fff7e6'}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff7e6'; setTooltip({ visible: false }); }}
+              onMouseDown={e => e.currentTarget.style.background = isDark ? '#4a3615' : '#ffe6b3'}
+              onMouseUp={e => e.currentTarget.style.background = isDark ? '#3a2a10' : '#fff7e6'}
+              onMouseLeave={e => { e.currentTarget.style.background = isDark ? '#3a2a10' : '#fff7e6'; setTooltip({ visible: false }); }}
               onMouseMove={e => {
                 setTooltip({
                   visible: true,
@@ -302,24 +315,24 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
             left: tooltip.x,
             top: tooltip.y,
             zIndex: 9999,
-            background: '#fff',
-            border: '1px solid #ddd',
+            background: isDark ? '#23272f' : '#fff',
+            border: isDark ? '1px solid #444' : '1px solid #ddd',
             borderRadius: 10,
-            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            boxShadow: isDark ? '0 4px 16px #0009' : '0 2px 12px rgba(0,0,0,0.12)',
             padding: '14px 18px',
             minWidth: 220,
             maxWidth: 320,
-            color: '#222',
+            color: isDark ? '#e0e6ed' : '#222',
             fontSize: 15,
             pointerEvents: 'none'
           }}>
             <div style={{ fontWeight: 600, fontSize: 17, marginBottom: 4 }}>
               {tooltip.item.type === 'Agent' ? '🤖' : '🗄️'} {tooltip.item.name}
             </div>
-            <div style={{ fontSize: 14, color: '#4f8cff', marginBottom: 6 }}>{tooltip.item.type}</div>
-            <div style={{ fontSize: 14, marginBottom: 6 }}>{tooltip.item.description || 'No description.'}</div>
+            <div style={{ fontSize: 14, color: isDark ? '#32b8c6' : '#4f8cff', marginBottom: 6 }}>{tooltip.item.type}</div>
+            <div style={{ fontSize: 14, marginBottom: 6, color: isDark ? '#b0b8c1' : '#222' }}>{tooltip.item.description || 'No description.'}</div>
             {tooltip.item.tags && tooltip.item.tags.length > 0 && (
-              <div style={{ fontSize: 13, color: '#888', marginBottom: 2 }}>
+              <div style={{ fontSize: 13, color: isDark ? '#888' : '#888', marginBottom: 2 }}>
                 Tags: {tooltip.item.tags.join(', ')}
               </div>
             )}
@@ -332,7 +345,7 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
             flex: 1,
             minHeight: 0,
             height: '100%',
-            background: '#fff',
+            background: isDark ? '#1f242b' : '#fff',
             borderRadius: 8,
             overflow: 'hidden',
             display: 'flex'
@@ -350,17 +363,17 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
             fitView
             attributionPosition="top-right"
             nodeTypes={nodeTypes}
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', background: isDark ? '#1f242b' : '#fff', color: isDark ? '#e0e6ed' : '#222' }}
           >
             <MiniMap zoomable pannable />
             <Controls />
-            <Background />
+            <Background color={isDark ? '#333' : '#eaeaea'} gap={24} />
           </ReactFlow>
         </div>
       </div>
       <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 16 }}>
         <label>Save as:</label>
-        <select value={saveType} onChange={e => setSaveType(e.target.value)} style={{ padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }}>
+        <select value={saveType} onChange={e => setSaveType(e.target.value)} style={{ padding: 8, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, background: isDark ? '#2c313a' : '#fff', color: isDark ? '#e0e6ed' : '#222' }}>
           <option value="agent">Agent</option>
           <option value="mcp">MCP Server</option>
         </select>
@@ -395,23 +408,23 @@ const BuilderView = ({ agents, mcpServers, onSaveAgent, onSaveMcp }) => {
       </div>
       {/* Node editing modal */}
       {editingNode && (
-        <div style={{ position: 'fixed', top: 80, left: 0, right: 0, margin: '0 auto', maxWidth: 340, background: '#fff', borderRadius: 12, boxShadow: 'var(--shadow-md)', padding: 24, zIndex: 1000 }}>
+        <div style={{ position: 'fixed', top: 80, left: 0, right: 0, margin: '0 auto', maxWidth: 360, background: isDark ? '#23272f' : '#fff', borderRadius: 12, boxShadow: isDark ? '0 4px 16px #0009' : 'var(--shadow-md)', padding: 24, zIndex: 1000, border: isDark ? '1px solid #444' : 'none', color: isDark ? '#e0e6ed' : '#222' }}>
           <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 12 }}>Edit Node</div>
           <div style={{ marginBottom: 8 }}>
             <label>Label:</label>
-            <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }} />
+            <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, background: isDark ? '#2c313a' : '#fff', color: isDark ? '#e0e6ed' : '#222' }} />
           </div>
           <div style={{ marginBottom: 8 }}>
             <label>Type:</label>
-            <select value={editType} onChange={e => setEditType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: '1px solid var(--color-border)', fontSize: 14 }}>
+            <select value={editType} onChange={e => setEditType(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 8, border: isDark ? '1px solid #444' : '1px solid var(--color-border)', fontSize: 14, background: isDark ? '#2c313a' : '#fff', color: isDark ? '#e0e6ed' : '#222' }}>
               <option value="agent">Agent</option>
               <option value="mcp">MCP Server</option>
             </select>
           </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button className="nav-btn" onClick={handleEditSave}>Save</button>
-            <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => setEditingNode(null)}>Cancel</button>
-            <button className="nav-btn" style={{ background: 'var(--color-error)' }} onClick={() => {
+            <button className="nav-btn" style={{ background: isDark ? '#ff5459' : 'var(--color-error)' }} onClick={() => setEditingNode(null)}>Cancel</button>
+            <button className="nav-btn" style={{ background: isDark ? '#ff5459' : 'var(--color-error)' }} onClick={() => {
               setNodes(nds => {
                 if (yReady) nodesMapRef.current.delete(editingNode.id);
                 return nds.filter(n => n.id !== editingNode.id);

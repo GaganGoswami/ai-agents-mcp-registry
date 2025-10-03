@@ -15,7 +15,10 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 100, success: 98, error: 2},
     auditLogs: [],
     comments: [],
-    visibility: 'public'
+    visibility: 'public',
+  verified: true,
+  pricingModel: 'Subscription',
+  governanceStatus: 'approved'
   },
   {
     id: 'chatbot',
@@ -32,7 +35,10 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 50, success: 45, error: 5},
     auditLogs: [],
     comments: [],
-    visibility: 'private'
+    visibility: 'private',
+  verified: true,
+  pricingModel: 'Free',
+  governanceStatus: 'pending'
   },
   {
     id: 'web-research',
@@ -49,7 +55,9 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 30, success: 29, error: 1},
     auditLogs: [],
     comments: [],
-    visibility: 'public'
+  visibility: 'public',
+  pricingModel: 'Pay-per-use',
+  governanceStatus: 'approved'
   },
   {
     id: 'process-automator',
@@ -66,7 +74,9 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 20, success: 20, error: 0},
     auditLogs: [],
     comments: [],
-    visibility: 'public'
+  visibility: 'public',
+  pricingModel: 'Enterprise',
+  governanceStatus: 'rejected'
   },
   {
     id: 'code-assistant-mcp',
@@ -83,7 +93,8 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 10, success: 9, error: 1},
     auditLogs: [],
     comments: [],
-    visibility: 'private'
+  visibility: 'private',
+  pricingModel: 'Custom'
   },
   {
     id: 'multimodal',
@@ -100,7 +111,8 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 5, success: 5, error: 0},
     auditLogs: [],
     comments: [],
-    visibility: 'public'
+  visibility: 'public',
+  pricingModel: 'Free'
   },
   {
     id: 'local-first',
@@ -117,7 +129,8 @@ export const EXAMPLE_AGENTS = [
     usageStats: {invocations: 2, success: 2, error: 0},
     auditLogs: [],
     comments: [],
-    visibility: 'private'
+  visibility: 'private',
+  pricingModel: 'Subscription'
   }
 ];
 
@@ -129,12 +142,13 @@ export const EXAMPLE_MCP_SERVERS = [
     endpoint: 'http://mcp.slack:9000',
     compatible: ['anthropic', 'claude'],
     status: 'online',
-    instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.slack:9000", {token: "your-slack-token"})'
-      ,
-      versions: [
-        { v: '1.0', changelog: 'Initial release' },
-        { v: '1.1', changelog: 'Added Slack events support' }
-      ]
+    instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.slack:9000", {token: "your-slack-token"})',
+    versions: [
+      { v: '1.0', changelog: 'Initial release' },
+      { v: '1.1', changelog: 'Added Slack events support' }
+    ],
+  verified: true,
+  pricingModel: 'Enterprise'
   },
   {
     id: 'github-mcp',
@@ -143,12 +157,13 @@ export const EXAMPLE_MCP_SERVERS = [
     endpoint: 'http://mcp.github:9001',
     compatible: ['github', 'mcp'],
     status: 'online',
-    instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.github:9001", {token: "your-github-token"})'
-      ,
-      versions: [
-        { v: '1.0', changelog: 'Initial release' },
-        { v: '1.2', changelog: 'Added GitHub Actions integration' }
-      ]
+    instructions: '1. Install MCP SDK: npm install mcp-sdk\n2. Attach: mcp.attach("http://mcp.github:9001", {token: "your-github-token"})',
+    versions: [
+      { v: '1.0', changelog: 'Initial release' },
+      { v: '1.2', changelog: 'Added GitHub Actions integration' }
+    ],
+  verified: true,
+  pricingModel: 'Subscription'
   },
   {
     id: 'postgres-mcp',
@@ -162,7 +177,8 @@ export const EXAMPLE_MCP_SERVERS = [
       versions: [
         { v: '1.0', changelog: 'Initial release' },
         { v: '1.1', changelog: 'Improved connection pooling' }
-      ]
+      ],
+    pricingModel: 'Pay-per-use'
   },
   {
     id: 'google-drive-mcp',
@@ -176,7 +192,8 @@ export const EXAMPLE_MCP_SERVERS = [
       versions: [
         { v: '1.0', changelog: 'Initial release' },
         { v: '1.1', changelog: 'Added folder sync support' }
-      ]
+      ],
+    pricingModel: 'Custom'
   },
   {
     id: 'puppeteer-mcp',
@@ -190,6 +207,7 @@ export const EXAMPLE_MCP_SERVERS = [
       versions: [
         { v: '1.0', changelog: 'Initial release' },
         { v: '1.1', changelog: 'Added screenshot API' }
-      ]
+      ],
+    pricingModel: 'Free'
   }
 ];
